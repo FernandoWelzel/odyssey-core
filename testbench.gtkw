@@ -1,0 +1,42 @@
+[*]
+[*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
+[*] Sun Apr 14 20:08:49 2024
+[*]
+[dumpfile] "/home/welzelf/Documents/Projects/RISCV-Project/testbench.vcd"
+[dumpfile_mtime] "Sun Apr 14 20:07:51 2024"
+[dumpfile_size] 1566
+[savefile] "/home/welzelf/Documents/Projects/RISCV-Project/testbench.gtkw"
+[timestart] 0
+[size] 2560 1361
+[pos] -1 -1
+*-2.495347 2 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] testbench.
+[sst_width] 297
+[signals_width] 247
+[sst_expanded] 1
+[sst_vpaned_height] 402
+@420
+testbench.core_i.DATA_WIDTH
+testbench.core_i.REGISTERS
+@28
+testbench.core_i.clk
+@22
+testbench.core_i.data_address[31:0]
+@28
+testbench.core_i.funct3[2:0]
+@22
+testbench.core_i.funct7[6:0]
+testbench.core_i.imm[11:0]
+testbench.core_i.inst[31:0]
+testbench.core_i.inst_address[31:0]
+testbench.core_i.opcode[6:0]
+testbench.core_i.r_data[31:0]
+testbench.core_i.rd[4:0]
+testbench.core_i.rs1[4:0]
+testbench.core_i.rs2[4:0]
+@28
+testbench.core_i.rst
+@22
+testbench.core_i.w_data[31:0]
+[pattern_trace] 1
+[pattern_trace] 0

@@ -1,0 +1,23 @@
+# read design
+read_verilog -sv ./src/core.sv
+
+# elaborate design hierarchy
+hierarchy -check -top core
+
+# the high-level stuff
+proc; opt; fsm; opt; memory; opt
+
+# mapping to internal cell library
+techmap; opt
+
+# mapping flip-flops to mycells.lib
+dfflibmap -liberty /home/welzelf/Documents/Packages/yosys/yosys/examples/cmos/cmos_cells.lib
+
+# mapping logic to mycells.lib
+abc -liberty /home/welzelf/Documents/Packages/yosys/yosys/examples/cmos/cmos_cells.lib
+
+# cleanup
+clean
+
+# write synthesized design
+write_verilog synth/synth.v
