@@ -1,4 +1,4 @@
-# RISCV-Project
+# odyssey-core
 
 Simple RISCV 32 bit processor.
 
@@ -12,8 +12,8 @@ Simple RISCV 32 bit processor.
 
 ```sh
 make compile
-./testbench
-gtkwave testbench.vcd
+./tb
+gtkwave tb.vcd
 ```
 
 # Next steps

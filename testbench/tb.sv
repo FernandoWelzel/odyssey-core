@@ -12,6 +12,7 @@ logic rst;
 
 logic [DATA_WIDTH-1:0] inst_address;
 logic [DATA_WIDTH-1:0] inst;
+logic [0:DATA_WIDTH-1] inst_inversed;
 
 logic [DATA_WIDTH-1:0] data_address;
 logic [DATA_WIDTH-1:0] r_data;
@@ -45,13 +46,32 @@ end
 // File handle
 int file_handle;
 
+assign inst_inversed = inst;
+
 string line;
 int FILE, code;
+
+// Function to read instruction from file considering byte order
+function automatic bit [31:0] read_int_from_file();
+    bit [7:0] temp_byte;
+    int i;
+
+    // Read the bytes into a temporary variable
+    for (i = 0; i < 4; i++) begin
+        if (!$fread(temp_byte, FILE)) begin
+            return 0;
+        end
+
+        inst[i*8 +: 8] = temp_byte;
+    end
+
+    return 1;
+endfunction
 
 // Open the binary file for reading
 initial begin
     // Open the file in binary mode for reading
-    FILE = $fopen("tb/generated_bytecode.riscv", "r");
+    FILE = $fopen("testbench/test", "rb");
 
     if (FILE == 0) begin
         $display("Error opening file");
@@ -73,12 +93,13 @@ initial begin
     `endif
 
     // Wait testbench
-    while($fgets(line, FILE)) begin
+    while(read_int_from_file()) begin
         // Put value into data
-        status = $sscanf(line, "%d", inst);
+        $display("%h", inst);
 
         #PERIOD;
-        // $display("RD = %0d, RS1 = %0d, RS2 = %0d", core_i.rd, core_i.rs1, core_i.rs2);
+
+        $display("RD = %0d, RS1 = %0d, RS2 = %0d", core_i.rd, core_i.rs1, core_i.rs2);
         // $display("DATA[RD] = %0d, DATA[RS1] = %0d, DATA[RS2] = %0d", core_i.register_file[core_i.rd], core_i.register_file[core_i.rs1], core_i.register_file[core_i.rs2]);
     end
 
