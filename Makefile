@@ -3,6 +3,7 @@ DISPLAY=gtkwave
 SYNTH_TOOL=yosys
 RISCV_ASSEMBLER=/opt/riscv/bin/riscv64-unknown-linux-gnu-as
 RISCV_OBJCOPY=/opt/riscv/bin/riscv64-unknown-linux-gnu-objcopy
+GCC=g++
 
 COMP_FLAGS=-g2012
 
@@ -19,6 +20,10 @@ TEST_OBJECT=testbench/test.o
 TEST_BINARY=testbench/test
 
 EXE=tb
+
+compile_systemc:
+	$(GCC) -c ./testbench/systemc_tb.cpp -o ./testbench/systemc_tb.o -I/opt/systemc/include
+	$(GCC) ./testbench/systemc_tb.o -o ./testbench/systemc_tb -L/opt/systemc/lib -lsystemc
 
 compile: 
 	$(COMP) $(COMP_FLAGS) $(SOURCES) $(TOP) -o $(EXE)

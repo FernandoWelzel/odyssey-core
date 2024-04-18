@@ -29,4 +29,5 @@ gtkwave tb.vcd
     - [ ] Technology (is there an open-source alternative ?)
     - [ ] Choose goals (P&R, integration with SoC?)
     - [ ] Choose synthesis tool (Yosys) + Integrate it with HLS?
-
+- [ ] Implement testbench in SystemC
+    - [ ] Integrate memory as a SystemC component that reads from a file

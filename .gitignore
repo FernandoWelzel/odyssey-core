@@ -2,3 +2,5 @@ tb
 tb.vcd
 
 synth/synth.v
+
+*.o
