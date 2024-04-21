@@ -3,7 +3,12 @@ DISPLAY=gtkwave
 SYNTH_TOOL=yosys
 RISCV_ASSEMBLER=/opt/riscv/bin/riscv64-unknown-linux-gnu-as
 RISCV_OBJCOPY=/opt/riscv/bin/riscv64-unknown-linux-gnu-objcopy
-GCC=g++
+CXX=g++
+
+CXX_FLAGS=-g -Wall -pedantic -Wno-long-long -Werror
+
+SYSTEMC=/opt/systemc
+SYSTEMC_FLAGS=-lsystemc -lstdc++ -lm
 
 COMP_FLAGS=-g2012
 
@@ -15,15 +20,11 @@ SYNTH_TARGET=synth/synth.v
 TOP=testbench/tb.sv
 VCD_FILE=tb.vcd
 WAVE_SCRIPT=tb.gtkw
-TEST_ASSEMBLY=testbench/test.s
-TEST_OBJECT=testbench/test.o
-TEST_BINARY=testbench/test
+TEST_ASSEMBLY=testbench/systemc/test.asm
+TEST_OBJECT=testbench/systemc/test.o
+TEST_BINARY=testbench/systemc/test
 
 EXE=tb
-
-compile_systemc:
-	$(GCC) -c ./testbench/systemc_tb.cpp -o ./testbench/systemc_tb.o -I/opt/systemc/include
-	$(GCC) ./testbench/systemc_tb.o -o ./testbench/systemc_tb -L/opt/systemc/lib -lsystemc
 
 compile: 
 	$(COMP) $(COMP_FLAGS) $(SOURCES) $(TOP) -o $(EXE)

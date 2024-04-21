@@ -4,3 +4,4 @@ tb.vcd
 synth/synth.v
 
 *.o
+.vscode

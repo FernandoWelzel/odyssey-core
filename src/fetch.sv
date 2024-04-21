@@ -1,30 +1,30 @@
 // Processor fetch unit
 module fetch #(
-    parameter DATA_WIDTH = 32,
-    parameter IMM_SMALL_LENGHT = 
+    parameter DATA_WIDTH = 32
 )
 (
-    output logic [DATA_WIDTH-1:0] address,
-    input  logic [DATA_WIDTH-1:0] intruction,
+    // output logic [DATA_WIDTH-1:0] address,
+    input  logic [DATA_WIDTH-1:0] instruction,
 
-    output logic [11:0]
+    output logic [DATA_WIDTH-1:0] c_instruction,
+    // output logic [11:0] name,
 
     input  logic clk,
     input  logic rst
 );
 
 // Variable declaration
-logic [DATA_WIDTH-1:0] pc;
-logic [DATA_WIDTH-1:0] c_intruction;
+// logic [DATA_WIDTH-1:0] pc;
+// logic [DATA_WIDTH-1:0] c_instruction;
 
 // Main loop 
 always @(posedge clk) begin
     if(rst) begin
-        pc <= 0;
-        c_intruction <= 0;
+        // pc <= 0;
+        c_instruction <= 0;
     end
     else begin
-        c_intruction <= instruction;
+        c_instruction <= instruction;
     end
 end
 
