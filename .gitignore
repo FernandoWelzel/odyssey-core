@@ -1,7 +1,16 @@
-tb
-tb.vcd
-
-synth/synth.v
-
+# Generic files
 *.o
+*.x
+*.vcd
+
+# Generic folders 
+*logs/
+*obj_dir/
+
+# Specific folders 
 .vscode
+
+# Specific files
+synth/synth.v
+testbench/systemc/test
+tb
