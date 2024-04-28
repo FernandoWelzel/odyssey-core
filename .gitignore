@@ -13,4 +13,5 @@
 # Specific files
 synth/synth.v
 testbench/systemc/test
+testbench/verilator/test
 tb

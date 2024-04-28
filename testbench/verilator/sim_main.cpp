@@ -17,6 +17,9 @@
 
 #include <verilated_vcd_c.h>
 
+// User defined types
+#include "memory.hpp"
+
 int main(int argc, char** argv) {
     (void)argc;
     (void)argv;
@@ -31,21 +34,21 @@ int main(int argc, char** argv) {
     const std::unique_ptr<Vcore> core{new Vcore{contextp.get(), "CORE"}};
 
     // Instantiating memories
-    std::map<int, int> dataMap;
-    std::map<int, int> instMap;
+    Memory data_mem;
+    Memory inst_mem;
 
     // Path to RISCV assembly testfile
     std::string assembly_path = "test";
 
     // Open file for reading
-    std::ifstream assemblyFile(assembly_path, ios::binary);
+    std::ifstream assemblyFile(assembly_path, std::ios::binary);
 
     // Populating instruction memory
     int current_address = 0;
     int instruction_variable = 0;
     
     while(assemblyFile.read(reinterpret_cast<char*>(&instruction_variable), sizeof(int))) {
-        instruction_memory.addressMap[current_address] = instruction_variable;
+        inst_mem.write(current_address, instruction_variable);
         
         // Increases current address
         current_address++;
@@ -69,35 +72,29 @@ int main(int argc, char** argv) {
     core->clk = 0;
 
     // Run simulation for 10 clock cycles
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < current_address*2 + 10; ++i) {
         // Increase time
         contextp->timeInc(10);
-        
+
         // Toggle clock
         core->clk = !core->clk;
 
         // Assert clock for 3 clock cycles
-        if (i < 6)
+        if (i < 6) {
             core->rst = 1;
-        else
+        }
+        else {
             core->rst = 0;
+        }
 
         // Evaluate the core
         core->eval();
 
-        // Updating memory
-        if(core->inst_csn) {
-            // Switches according to memory action
-            if(inst_wen) {
-                
-            }
-            else {
-                
-            }
-            
-        }
-
-        VL_PRINTF("%s\n", print_variable.c_str());
+        // Updating memories
+        core->r_inst = inst_mem.update(core->inst_csn, core->inst_wen, core->inst_address, core->w_inst);
+        core->r_data = data_mem.update(core->data_csn, core->data_wen, core->data_address, core->w_data);
+        
+        // VL_PRINTF("%s\n", print_variable.c_str());
 
         // Dump variables
 #if VM_TRACE

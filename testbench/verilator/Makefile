@@ -25,14 +25,26 @@ VERILATOR_FLAGS += -CFLAGS -DVL_TIME_CONTEXT
 # Make waveforms
 TOP_VERILATOR_FLAGS = $(VERILATOR_FLAGS) --trace
 
+# Assembly script
+TEST_BINARY=test
+TEST_ASSEMBLY=test.asm
+TEST_OBJECT=test.o
+
+RISCV_ASSEMBLER=/opt/riscv/bin/riscv64-unknown-linux-gnu-as
+RISCV_OBJCOPY=/opt/riscv/bin/riscv64-unknown-linux-gnu-objcopy
+
 ######################################################################
 default: run
 
-run:
+$(TEST_BINARY): $(TEST_ASSEMBLY) 
+	$(RISCV_ASSEMBLER) $(TEST_ASSEMBLY) -o  $(TEST_OBJECT)
+	$(RISCV_OBJCOPY) -O binary $(TEST_OBJECT) $(TEST_BINARY)
+
+run: $(TEST_BINARY)
 	@echo "-- VERILATE core module ---------------------------------------"
 	@echo " Transforming top module in C++..."
 	@echo "---------------------------------------------------------------"
-	$(VERILATOR) $(TOP_VERILATOR_FLAGS) --exe ../../src/core.sv sim_main.cpp
+	$(VERILATOR) $(TOP_VERILATOR_FLAGS) --exe ../../src/core.sv sim_main.cpp memory.cpp
 	
 	@echo "-- COMPILE top module and testbench ---------------------------"
 	@echo " Compilling top module and C++ testbench using g++..."

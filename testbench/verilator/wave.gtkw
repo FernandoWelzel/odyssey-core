@@ -1,0 +1,81 @@
+[*]
+[*] GTKWave Analyzer v3.3.118 (w)1999-2023 BSI
+[*] Sun Apr 28 06:35:47 2024
+[*]
+[dumpfile] "/home/welzelf/Documents/Projects/odyssey-core/testbench/verilator/logs/vlt_dump.vcd"
+[dumpfile_mtime] "Sun Apr 28 06:32:05 2024"
+[dumpfile_size] 6669
+[savefile] "/home/welzelf/Documents/Projects/odyssey-core/testbench/verilator/wave.gtkw"
+[timestart] 10
+[size] 1920 1001
+[pos] -51 -51
+*-6.250684 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] CORE.
+[sst_width] 261
+[signals_width] 214
+[sst_expanded] 1
+[sst_vpaned_height] 294
+@22
+CORE.core.DATA_WIDTH[31:0]
+CORE.core.REGISTERS[31:0]
+@28
+CORE.core.clk
+@22
+CORE.core.data_address[31:0]
+@28
+CORE.core.data_csn
+CORE.core.data_wen
+CORE.core.funct3[2:0]
+@22
+CORE.core.funct7[6:0]
+CORE.core.imm[11:0]
+CORE.core.inst_address[31:0]
+@28
+CORE.core.inst_csn
+CORE.core.inst_wen
+@22
+CORE.core.opcode[6:0]
+CORE.core.r_data[31:0]
+CORE.core.r_inst[31:0]
+CORE.core.rd[4:0]
+CORE.core.register_file[0][31:0]
+CORE.core.register_file[1][31:0]
+CORE.core.register_file[2][31:0]
+CORE.core.register_file[3][31:0]
+CORE.core.register_file[4][31:0]
+CORE.core.register_file[5][31:0]
+CORE.core.register_file[6][31:0]
+CORE.core.register_file[7][31:0]
+CORE.core.register_file[8][31:0]
+CORE.core.register_file[9][31:0]
+CORE.core.register_file[10][31:0]
+CORE.core.register_file[11][31:0]
+CORE.core.register_file[12][31:0]
+CORE.core.register_file[13][31:0]
+CORE.core.register_file[14][31:0]
+CORE.core.register_file[15][31:0]
+CORE.core.register_file[16][31:0]
+CORE.core.register_file[17][31:0]
+CORE.core.register_file[18][31:0]
+CORE.core.register_file[19][31:0]
+CORE.core.register_file[20][31:0]
+CORE.core.register_file[21][31:0]
+CORE.core.register_file[22][31:0]
+CORE.core.register_file[23][31:0]
+CORE.core.register_file[24][31:0]
+CORE.core.register_file[25][31:0]
+CORE.core.register_file[26][31:0]
+CORE.core.register_file[27][31:0]
+CORE.core.register_file[28][31:0]
+CORE.core.register_file[29][31:0]
+CORE.core.register_file[30][31:0]
+CORE.core.register_file[31][31:0]
+CORE.core.rs1[4:0]
+CORE.core.rs2[4:0]
+@28
+CORE.core.rst
+@22
+CORE.core.w_data[31:0]
+CORE.core.w_inst[31:0]
+[pattern_trace] 1
+[pattern_trace] 0
