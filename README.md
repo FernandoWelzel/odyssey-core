@@ -1,6 +1,6 @@
 # odyssey-core
 
-Simple RISCV 32 bit processor. Currently does not implement fault-tollerant methods.
+Simple RISCV 32 bit processor implemented in the Tang Nano 9K FPGA board. Currently does not implement fault-tollerant methods.
 
 # Requirements
 
@@ -23,18 +23,3 @@ The following steps can be made to run the testbench:
     2. Change the testbench/systemc/test.asm script to the desired assembly instructions for the processor to run;
     3. Compile the testbench in the testbench/systemc folder using the Makefile;  
 
-# Next steps
-
-- [ ] Testbench
-    - [ ] Simple testbench with supported instructions
-    - [ ] Implement simple riscv assembly compiler
-- [ ] Choose the directions to go with project
-    - [ ] Use standart riscv flow (compilation and execution) ?
-    - [ ] Processor architecture (supported instructions/extensions + cache + general pipeline)
-    - [ ] HLS or RTL implementation
-        - [ ] If HLS, which software suite for open source?
-    - [ ] Technology (is there an open-source alternative ?)
-    - [ ] Choose goals (P&R, integration with SoC?)
-    - [ ] Choose synthesis tool (Yosys) + Integrate it with HLS?
-- [ ] Implement testbench in SystemC
-    - [ ] Integrate memory as a SystemC component that reads from a file

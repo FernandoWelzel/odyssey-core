@@ -13,6 +13,7 @@ logic rst;
 logic [DATA_WIDTH-1:0] inst_address;
 logic [DATA_WIDTH-1:0] inst;
 logic [0:DATA_WIDTH-1] inst_inversed;
+logic inst_csn;
 
 logic [DATA_WIDTH-1:0] data_address;
 logic [DATA_WIDTH-1:0] r_data;
@@ -31,6 +32,7 @@ logic [DATA_WIDTH-1:0] w_data;
         .rst(rst),
         .inst_address(inst_address),
         .inst(inst),
+    	.inst_csn(inst_csn),
         .data_address(data_address),
         .r_data(r_data),
         .w_data(w_data)
@@ -71,7 +73,7 @@ endfunction
 // Open the binary file for reading
 initial begin
     // Open the file in binary mode for reading
-    FILE = $fopen("testbench/test", "rb");
+    FILE = $fopen("testbench/verilator/test", "rb");
 
     if (FILE == 0) begin
         $display("Error opening file");
@@ -100,7 +102,7 @@ initial begin
         #PERIOD;
 
         $display("RD = %0d, RS1 = %0d, RS2 = %0d", core_i.rd, core_i.rs1, core_i.rs2);
-        // $display("DATA[RD] = %0d, DATA[RS1] = %0d, DATA[RS2] = %0d", core_i.register_file[core_i.rd], core_i.register_file[core_i.rs1], core_i.register_file[core_i.rs2]);
+        $display("DATA[RD] = %0d, DATA[RS1] = %0d, DATA[RS2] = %0d", core_i.register_file[core_i.rd], core_i.register_file[core_i.rs1], core_i.register_file[core_i.rs2]);
     end
 
     $display("Simulation passing!");

@@ -50,7 +50,7 @@ run: $(TEST_BINARY)
 	@echo " Compilling top module and C++ testbench using g++..."
 	@echo "---------------------------------------------------------------"
 	$(MAKE) -j 4 -C obj_dir -f Vcore.mk
-
+	
 	@echo "-- RUNNING testbench ------------------------------------------"
 	@echo " Running main testbench and dumping vcd file..."
 	@echo "---------------------------------------------------------------"
