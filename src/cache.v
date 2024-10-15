@@ -55,12 +55,15 @@ module cache #(
 localparam INIT       = 0;
 localparam CACHE_HIT  = 1;
 localparam CACHE_MISS = 2;
+localparam WRITE_MEM  = 3;
+localparam SEND_VALUE = 4;
 
-reg [1:0] c_state, n_state;
+reg [2:0] c_state, n_state;
 
 // Internal variables
 wire [BLOCK_SIZE-1:0] tag_comp;
 reg [TAG_WIDTH*BLOCK_SIZE-1:0] tag_memory_reg;
+reg [TAG_WIDTH*BLOCK_SIZE-1:0] tag_memory_reg_new;
 reg cache_miss_reg;
 reg [BLOCK_SIZE-1:0] valid_line_reg;
 reg valid_reg;
@@ -77,6 +80,8 @@ reg [BLOCK_WIDTH-1:0] di;
 
 // Combinatorial logic
 always @(*) begin
+    wre = 1'b0;
+
     // State transition logic
     case (c_state)
         INIT: begin
@@ -102,7 +107,7 @@ always @(*) begin
             HTRANS_reg = 1'b1;
             
             if (HREADY) begin
-                n_state = INIT;
+                n_state = WRITE_MEM;
             end
             else begin
                 n_state = CACHE_MISS;
@@ -110,6 +115,24 @@ always @(*) begin
         end
         CACHE_HIT: begin
             valid_reg = 1'b1;
+            
+            // Goes back directly
+            n_state = INIT;
+        end
+        WRITE_MEM: begin
+            valid_reg = 1'b0;
+            
+            // Write in the internal memory
+            wre = 1'b1;
+            
+            // Goes back directly
+            n_state = SEND_VALUE;
+        end
+        SEND_VALUE: begin
+            valid_reg = 1'b0;
+            
+            // Write in the internal memory
+            wre = 1'b0;
             
             // Goes back directly
             n_state = INIT;
@@ -130,13 +153,18 @@ generate
     for (i=0; i<BLOCK_SIZE; i=i+1) begin
         assign tag_comp[i] = (tag_memory_reg[TAG_WIDTH*(i+1)-1:TAG_WIDTH*i] == addr[ADDR_WIDTH-1:ADDR_WIDTH-TAG_WIDTH-1]) && valid_line_reg[i];
     end
+
+    // Generating tag memory replacement
+    for(i=0; i<BLOCK_SIZE; i++) begin
+        assign tag_memory_reg_new[TAG_WIDTH*(i+1)-1:TAG_WIDTH*i] = (i == ad) ? addr[ADDR_WIDTH-1:ADDR_WIDTH-TAG_WIDTH-1] : tag_memory_reg[TAG_WIDTH*(i+1)-1:TAG_WIDTH*i];
+    end
 endgenerate
 
 always @(*) begin
-    data_reg = dout[addr];
+    data_reg = dout[addr[ADDR_WIDTH-TAG_WIDTH-1:0]];
     
     // Will have a tag miss only with all tags are invalid
-    cache_miss_reg = ~| tag_comp; 
+    cache_miss_reg = ~| tag_comp;
 end
 
 assign data = data_reg;
@@ -146,6 +174,8 @@ assign valid = valid_reg;
 
 assign HADDR = HADDR_reg;
 assign HTRANS = HTRANS_reg;
+
+assign di = HRDATA;
 
 // Instantiation of SSRAM based memory
 Gowin_RAM16S memory_block (
@@ -158,9 +188,12 @@ Gowin_RAM16S memory_block (
 
 // Sequential logic
 always @(posedge clk) begin
+    integer i;
+
     if(rst) begin
         // Reseting variables
         tag_memory_reg <= 0;
+        ad <= 0;
 
         // Initializing valid line to zero
         // Obs.: All first access will result in a miss
@@ -169,7 +202,19 @@ always @(posedge clk) begin
         c_state <= INIT;
     end
     else begin
+        if(c_state == SEND_VALUE) begin
+            ad <= ad + 1;
+        end
+        else begin
+            for(i = 0; i < BLOCK_SIZE; i=i+1) begin
+                if(tag_comp[i] && valid_line_reg[i]) begin
+                    ad <= i;
+                end
+            end
+        end
+
         c_state <= n_state;
+        tag_memory_reg <= tag_memory_reg_new;
     end
 end
 
