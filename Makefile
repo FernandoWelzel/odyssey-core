@@ -10,9 +10,9 @@ CXX_FLAGS=-g -Wall -pedantic -Wno-long-long -Werror
 SYSTEMC=/opt/systemc
 SYSTEMC_FLAGS=-lsystemc -lstdc++ -lm
 
-COMP_FLAGS=-g2012
+COMP_FLAGS=-g2012 -I ./src
 
-SOURCES=src/core.sv
+SOURCES=src/alu.v src/core.v src/decode.v src/fetch.v src/lsu.v src/register_file.v
 SOURCES_SYNTH=synth/synth.v
 SYNTH_LIBRARY=/home/welzelf/Documents/Packages/yosys/yosys/examples/cmos/cmos_cells.v
 SYNTH_SCRIPT=synth/synth.ys
@@ -48,6 +48,12 @@ binary: $(TEST_BINARY)
 
 wave: execute
 	$(DISPLAY) $(VCD_FILE) $(WAVE_SCRIPT)
+
+cache_test:
+	iverilog -g2012 testbench/systemverilog/cache_test.sv src/cache.v testbench/systemverilog/bus_driver.sv vendor/gowin_ram16s.v vendor/prim_sim.v -o tb
+
+execute_cache_test: cache_test
+	./tb
 
 clean:
 	rm -f $(EXE) $(SYNTH_TARGET) $(VCD_FILE) $(TEST_OBJECT) $(TEST_BINARY)

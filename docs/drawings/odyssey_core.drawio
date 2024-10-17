@@ -1,4 +1,4 @@
-<mxfile host="Electron" modified="2024-10-12T17:54:03.486Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.1.2 Chrome/114.0.5735.289 Electron/25.9.4 Safari/537.36" etag="MVFJk5W88HjLoSzTkLJc" version="22.1.2" type="device" pages="2">
+<mxfile host="Electron" modified="2024-10-12T22:39:52.801Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.1.2 Chrome/114.0.5735.289 Electron/25.9.4 Safari/537.36" etag="i7EjWKTOEd9bTJaE2FQd" version="22.1.2" type="device" pages="2">
   <diagram name="Core" id="1tYgKnE3AgGNWkMPIwFU">
     <mxGraphModel dx="1687" dy="974" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
@@ -206,7 +206,7 @@
             <mxPoint x="-1" y="103" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="-ExYScTHDAB8Ci7_-GAy-50" value="LED display&lt;br style=&quot;font-size: 16px;&quot;&gt;Interface" style="rounded=0;whiteSpace=wrap;html=1;labelBackgroundColor=none;fontSize=16;fillColor=#f8cecc;strokeColor=#b85450;fontColor=#000000;fontStyle=0" vertex="1" parent="1">
+        <mxCell id="-ExYScTHDAB8Ci7_-GAy-50" value="LED display&lt;br style=&quot;font-size: 16px;&quot;&gt;Interface" style="rounded=0;whiteSpace=wrap;html=1;labelBackgroundColor=none;fontSize=16;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=0;fontColor=#000000;" vertex="1" parent="1">
           <mxGeometry x="740" y="700" width="80" height="120" as="geometry" />
         </mxCell>
         <mxCell id="-ExYScTHDAB8Ci7_-GAy-51" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;shape=flexArrow;startArrow=block;labelBackgroundColor=none;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontColor=#000000;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=0" edge="1" parent="1" target="-ExYScTHDAB8Ci7_-GAy-50">
@@ -215,15 +215,15 @@
             <mxPoint x="779.5" y="510" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="-ExYScTHDAB8Ci7_-GAy-54" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;shape=flexArrow;startArrow=block;labelBackgroundColor=none;fontColor=#000000;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=0" edge="1" parent="1" source="-ExYScTHDAB8Ci7_-GAy-50">
+        <mxCell id="-ExYScTHDAB8Ci7_-GAy-54" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;shape=flexArrow;startArrow=block;labelBackgroundColor=none;fontColor=#000000;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=0" edge="1" parent="1" source="-ExYScTHDAB8Ci7_-GAy-50">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="780" y="1000" as="targetPoint" />
+            <mxPoint x="780" y="1040" as="targetPoint" />
             <mxPoint x="779.5" y="820" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="-ExYScTHDAB8Ci7_-GAy-55" value="IA2132R" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=24;fontStyle=2;labelBackgroundColor=none;fontColor=#FFFFFF;" vertex="1" connectable="0" parent="-ExYScTHDAB8Ci7_-GAy-54">
+        <mxCell id="-ExYScTHDAB8Ci7_-GAy-55" value="FYS-5611BS-21E" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=24;fontStyle=2;labelBackgroundColor=none;fontColor=#FFFFFF;" vertex="1" connectable="0" parent="-ExYScTHDAB8Ci7_-GAy-54">
           <mxGeometry x="0.0886" y="1" relative="1" as="geometry">
-            <mxPoint x="-1" y="102" as="offset" />
+            <mxPoint x="-1" y="120" as="offset" />
           </mxGeometry>
         </mxCell>
         <mxCell id="JAbWLhlf3FwXEW5CXkdR-1" value="Odyssey&lt;br&gt;SoC" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;strokeWidth=2;fontSize=24;fontStyle=3;fontColor=#FFFFFF;" vertex="1" parent="1">

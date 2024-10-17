@@ -1,41 +1,96 @@
 // Processor fetch unit
 module fetch #(
     parameter DATA_WIDTH = 32,
-    parameter START_ADDR = 0x80000000 
+    parameter START_ADDR = 32'h80000000 
 )
 (
-    input  logic [DATA_WIDTH-1:0] instruction,
-    output logic [DATA_WIDTH-1:0] addr_instruction,
+    // Instruction cache interface
+    output wire inst_req,
+    output wire [DATA_WIDTH-1:0] inst_addr,
 
-    input  logic clk,
-    input  logic rst
+    input  wire inst_valid,
+    input  wire [DATA_WIDTH-1:0] inst_data,
+
+    // Decode unit interface
+    output wire [DATA_WIDTH-1:0] inst,
+    output wire pc_req,
+    input  wire pc_valid,
+    input  wire stall,
+    
+    // ALU interface
+    output wire [DATA_WIDTH-1:0] pc,
+    input  wire [DATA_WIDTH-1:0] new_pc,
+
+    // Global control
+    input  wire clk,
+    input  wire rst
 );
 
-// Variable declaration
-logic [DATA_WIDTH-1:0] pc;
-logic [DATA_WIDTH-1:0] c_instruction;
+// State machine variables
+localparam UPDATE = 0;
+localparam WAIT_MEM = 1;
+localparam WAIT_PC = 2;
 
-// Sequential
-always @(posedge clk) begin
-    if(rst) begin
-		pc <= START_ADDR;
-    end
-    else begin
-        // Loads current instruction
-		c_instruction <= instruction;
+integer c_state, n_state;
 
-		// Updates pc
-    end
-end
+// Internal variables
+reg [DATA_WIDTH-1:0] inst_addr_reg;
 
 // Combinatorial
-always_comb begin
-	case (opcode)
-	    // R instructions
-	    7'b0110011: begin
-	        pc_jump <= 1;
-		end
-	endcase
+always @(*) begin
+	case (c_state)
+        UPDATE: begin
+            if(inst_req) begin
+                n_state = WAIT_MEM;
+            end
+            else if (pc_req) begin
+                n_state = WAIT_PC;
+            end
+            else begin
+                n_state = UPDATE;
+            end
+        end
+        WAIT_MEM: begin
+            if(inst_valid) begin
+                n_state = UPDATE;
+            end
+            else begin 
+                n_state = WAIT_MEM;
+            end
+        end
+        WAIT_PC: begin
+            if(pc_valid) begin
+                n_state = UPDATE;
+            end
+            else begin 
+                n_state = WAIT_PC;
+            end
+        end
+        default: begin
+            n_state = n_state;
+        end
+    endcase
 end
+
+// Sequential - FSM logic
+always @(posedge clk) begin
+    if(rst) begin
+        // Initialize first memory addr
+        inst_addr_reg <= START_ADDR;
+
+		c_state <= UPDATE;
+    end
+    else begin
+        // TODO: Fix to account for jumps in the address    
+        if(c_state == UPDATE) begin
+            inst_addr_reg = inst_addr_reg + 1; 
+        end
+
+		c_state <= n_state;
+    end
+end
+
+// Internal variables to outside connection
+assign inst_addr = inst_addr_reg;
 
 endmodule

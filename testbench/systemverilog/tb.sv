@@ -23,20 +23,22 @@ logic [DATA_WIDTH-1:0] w_data;
 `ifdef SYNTH
     core core_i (
 `else
-    core #(
-        .DATA_WIDTH(DATA_WIDTH),
-        .REGISTERS(REGISTERS)
-    ) core_i (
+    core core_i (
 `endif
-        .clk(clk),
-        .rst(rst),
-        .inst_address(inst_address),
-        .inst(inst),
-    	.inst_csn(inst_csn),
-        .data_address(data_address),
-        .r_data(r_data),
-        .w_data(w_data)
-    );
+    .inst_req(inst_req),
+    .inst_addr(inst_addr),
+    .inst_valid(inst_valid),
+    .inst_data(inst_data),
+    .data_req(data_req),
+    .data_addr(data_addr),
+    .data_valid(data_valid),
+    .rdata(rdata),
+    .wdata(wdata),
+    .inst_we(inst_we),
+    .byte_enable(byte_enable),
+    .clk(clk),
+    .rst(rst)
+);
 
 // Toggling clock
 initial begin
@@ -88,12 +90,6 @@ initial begin
     clk <= 0;
     rst <= 0;
 
-    `ifndef SYNTH
-        for (int i=0; i<REGISTERS; ++i) begin
-            core_i.register_file[i] <= 1;
-        end
-    `endif
-
     // Wait testbench
     while(read_int_from_file()) begin
         // Put value into data
@@ -101,8 +97,8 @@ initial begin
 
         #PERIOD;
 
-        $display("RD = %0d, RS1 = %0d, RS2 = %0d", core_i.rd, core_i.rs1, core_i.rs2);
-        $display("DATA[RD] = %0d, DATA[RS1] = %0d, DATA[RS2] = %0d", core_i.register_file[core_i.rd], core_i.register_file[core_i.rs1], core_i.register_file[core_i.rs2]);
+      	// $display("RD = %0d, RS1 = %0d, RS2 = %0d", core_i.rd, core_i.rs1, core_i.rs2);
+      	// $display("DATA[RD] = %0d, DATA[RS1] = %0d, DATA[RS2] = %0d", core_i.register_file[core_i.rd], core_i.register_file[core_i.rs1], core_i.register_file[core_i.rs2]);
     end
 
     $display("Simulation passing!");

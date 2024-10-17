@@ -1,31 +1,60 @@
-// Processor fetch unit
-module fetch #(
-    parameter DATA_WIDTH = 32
+`include "config.v"
+
+// Processor Arithmetic Logical Unit
+module alu #(
+    parameter DATA_WIDTH = 32,
+    parameter ALU_CONTROL_BITS = 3
 )
 (
-    // output logic [DATA_WIDTH-1:0] address,
-    input  logic [DATA_WIDTH-1:0] instruction,
+    // Data interface
+    input  wire [DATA_WIDTH-1:0] a,
+    input  wire [DATA_WIDTH-1:0] b,
+    output wire [DATA_WIDTH-1:0] q,
 
-    output logic [DATA_WIDTH-1:0] c_instruction,
-    // output logic [11:0] name,
+    // Comparison interface
+    output wire less_comp,
+    output wire equal_comp,
 
-    input  logic clk,
-    input  logic rst
+    // External control
+    input  wire signed_flag,
+    input  wire [ALU_CONTROL_BITS-1:0] alu_control
 );
 
-// Variable declaration
-// logic [DATA_WIDTH-1:0] pc;
-// logic [DATA_WIDTH-1:0] c_instruction;
+// Local variables
+reg [DATA_WIDTH-1:0] q_reg;
 
-// Main loop 
-always @(posedge clk) begin
-    if(rst) begin
-        // pc <= 0;
-        c_instruction <= 0;
-    end
-    else begin
-        c_instruction <= instruction;
-    end
+// Combinational logic
+always @(*) begin
+    case (alu_control)
+        ADD_SUB_OP: begin
+            q_reg = a + b;
+        end
+        XOR_OP: begin
+            q_reg = a ^ b;
+        end
+        OR_OP: begin
+            q_reg = a | b;
+        end
+        AND_OP: begin
+            q_reg = a & b;
+        end
+        LLS_OP: begin
+            q_reg = a << b;
+        end
+        RLS_OP: begin
+            q_reg = a >> b;
+        end
+        default: begin
+            q_reg = 0;
+        end
+    endcase
 end
+
+// Comparisons
+assign less_comp = a < b;
+assign equal_comp = a == b;
+
+// Output connection
+assign q = q_reg;
 
 endmodule
