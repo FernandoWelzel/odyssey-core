@@ -10,17 +10,22 @@ module register_file #(
     input  wire [LOG2_REGISTERS-1:0] addr_rs2,
     input  wire [LOG2_REGISTERS-1:0] addr_rd,
 
-    input  wire [DATA_WIDTH-1:0] data_rd,
     output wire [DATA_WIDTH-1:0] data_rs1,
     output wire [DATA_WIDTH-1:0] data_rs2,
+    input  wire [DATA_WIDTH-1:0] data_rd,
 
     input  wire clk,
     input  wire rst
 );
 
 // Internal variable declaration
-reg [REGISTERS*DATA_WIDTH-1:0] registers;
-reg [REGISTERS*DATA_WIDTH-1:0] registers_new;
+reg [DATA_WIDTH-1:0] registers [REGISTERS];
+reg [DATA_WIDTH-1:0] registers_new [REGISTERS];
+
+reg [DATA_WIDTH-1:0] data_rs1_reg;
+reg [DATA_WIDTH-1:0] data_rs2_reg;
+
+integer j;
 
 // Connecting registers to new values
 generate;
@@ -28,22 +33,35 @@ generate;
 
     for (i = 0; i<REGISTERS; i=i+1) begin
         if(i == 0) begin
-            assign registers_new[DATA_WIDTH-1:0] = 0;
+            assign registers_new[i] = 0;
         end
         else begin
-            assign registers_new[DATA_WIDTH*(i+1)-1:DATA_WIDTH*i] = (addr_rd == i) ? data_rd : registers[DATA_WIDTH*(i+1)-1:DATA_WIDTH*i];
+            assign registers_new[i] = (addr_rd == i) ? data_rd : registers[i];
         end
-    end
+    end    
 endgenerate
+
+// Generating output connection
+always @(*) begin
+    data_rs1_reg = registers[addr_rs1];
+    data_rs2_reg = registers[addr_rs2];
+end
 
 // Update of registers
 always @(posedge clk) begin
     if(rst) begin
-        registers <= 0;
+        for (j=0; j<REGISTERS; ++j) begin
+            registers[j] <= 0;        
+        end
     end
     else begin
-        registers <= registers_new;
+        for (j=0; j<REGISTERS; ++j) begin
+            registers[j] <= registers_new[j];        
+        end
     end
 end
+
+assign data_rs1 = data_rs1_reg;
+assign data_rs2 = data_rs2_reg;
 
 endmodule

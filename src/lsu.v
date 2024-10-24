@@ -21,7 +21,7 @@ module lsu #(
     input  wire data_valid,
     input  wire [DATA_WIDTH-1:0] rdata,
     output wire [DATA_WIDTH-1:0] wdata,
-    output wire inst_we,
+    output wire data_we,
     output wire [BYTE_DATA_WIDTH-1:0] byte_enable,
 
     // Global signals

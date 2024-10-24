@@ -12,7 +12,7 @@ SYSTEMC_FLAGS=-lsystemc -lstdc++ -lm
 
 COMP_FLAGS=-g2012 -I ./src
 
-SOURCES=src/alu.v src/core.v src/decode.v src/fetch.v src/lsu.v src/register_file.v
+SOURCES=src/alu.v src/core.v src/decode.v src/fetch.v src/lsu.v src/register_file.v testbench/systemverilog/inst_cache_driver.sv
 SOURCES_SYNTH=synth/synth.v
 SYNTH_LIBRARY=/home/welzelf/Documents/Packages/yosys/yosys/examples/cmos/cmos_cells.v
 SYNTH_SCRIPT=synth/synth.ys

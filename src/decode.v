@@ -3,7 +3,7 @@
 // Processor decode unit
 module decode #(
     parameter DATA_WIDTH = 32,
-    parameter ALU_CONTROL_BITS = 4,
+    parameter ALU_CONTROL_BITS = 3,
 	parameter LOG2_REGISTERS = 5,
     parameter BYTE_DATA_WIDTH = 4
 )
@@ -60,6 +60,9 @@ reg [11:0] imm_i;
 
 reg [11:0] pc_jump;
 
+reg select_pc_reg;
+reg rd_select_reg;
+
 // Internal assignments
 assign opcode = inst[6:0];
 assign funct3 = inst[14:12];
@@ -78,14 +81,21 @@ assign addr_rs1 = rs1;
 assign addr_rs2 = rs2;
 
 // Sign extension of immediate value
-assign imm = (imm_i[31]) ? {20'hFFFFF, imm_i} : {20'h00000, imm_i};
+assign imm = (imm_i[11]) ? {20'hFFFFF, imm_i} : {20'h00000, imm_i};
 
 assign alu_control = alu_control_reg;
 assign select_imm = select_imm_reg;
 assign signed_flag = signed_flag_reg;
 assign byte_enable = byte_enable_reg;
 
+assign select_pc = select_pc_reg;
+assign rd_select = rd_select_reg;
+
 always @(*) begin
+    // TODO: Fix for pc increase
+    select_pc_reg = 0;
+    rd_select_reg = 0;
+
     // Calculate instruction
     case (opcode)
         // R instructions

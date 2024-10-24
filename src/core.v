@@ -2,8 +2,8 @@
 module core #(
     parameter DATA_WIDTH = 32,
     parameter BYTE_DATA_WIDTH = 4,
-	parameter LOG2_REGISTERS = 5,
-	parameter ALU_CONTROL_BITS = 3
+    parameter LOG2_REGISTERS = 5,
+    parameter ALU_CONTROL_BITS = 3
 )
 (
     // Instruction cache interface
@@ -15,23 +15,27 @@ module core #(
 
     // Data cache interface
     output wire data_req,
-    output wire [DATA_WIDTH-1:0] data_addr,
     input  wire data_valid,
-    input  wire [DATA_WIDTH-1:0] rdata,
-    output wire [DATA_WIDTH-1:0] wdata,
-    output wire inst_we,
+    output wire data_we,
     output wire [BYTE_DATA_WIDTH-1:0] byte_enable,
 
+    output wire [DATA_WIDTH-1:0] data_addr,
+    input  wire [DATA_WIDTH-1:0] rdata,
+    output wire [DATA_WIDTH-1:0] wdata,
+
     // Global interfaces
-    input  wire clk,
+    // input  wire clk,
     input  wire rst
 );
 
-// Fetch interface
-reg inst_req_reg;
+bit clk;
+
+initial clk = 0;
+always #5 clk = ~clk;
 
 // Decode unit interface
-reg [DATA_WIDTH-1:0] inst;
+reg [DATA_WIDTH-1:0] pc;
+reg [DATA_WIDTH-1:0] new_pc;
 reg pc_req;
 reg pc_valid;
 reg stall;
@@ -41,6 +45,10 @@ reg mem_req;
 reg mem_we;
 reg mem_valid;
 reg [BYTE_DATA_WIDTH-1:0] byte_enable_lsu;
+reg [DATA_WIDTH-1:0] mem_addr;
+reg [DATA_WIDTH-1:0] result_data;
+reg [DATA_WIDTH-1:0] mem_rdata;
+reg [DATA_WIDTH-1:0] mem_wdata;
 
 // Register file interface
 reg [LOG2_REGISTERS-1:0] addr_rd;
@@ -56,9 +64,18 @@ reg equal;
 
 reg [ALU_CONTROL_BITS-1:0] alu_control;
 reg signed_flag;
+reg [DATA_WIDTH-1:0] data_rs1;
+reg [DATA_WIDTH-1:0] data_rs2;
+reg [DATA_WIDTH-1:0] data_rd;
 reg [DATA_WIDTH-1:0] imm;
+reg [DATA_WIDTH-1:0] a;
+reg [DATA_WIDTH-1:0] b;
+reg [DATA_WIDTH-1:0] q;
 reg select_imm;
 reg select_pc;
+
+// Fetch to decode
+reg [DATA_WIDTH-1:0] inst;
 
 // Fetch instantiation
 fetch fetch_u (
@@ -138,12 +155,16 @@ lsu lsu_u (
     .data_valid(data_valid),
     .rdata(rdata),
     .wdata(wdata),
-    .inst_we(inst_we),
+    .data_we(data_we),
     .byte_enable(byte_enable),
     .clk(clk),
     .rst(rst)
 );
 
-assign inst_req = inst_req_reg;
+assign a = (select_pc) ? pc : data_rs1;
+assign b = (select_imm) ? imm : data_rs2;
+
+// TODO: Fix
+assign data_rd = (rd_select == 2'b00) ? q : direct_store; 
 
 endmodule

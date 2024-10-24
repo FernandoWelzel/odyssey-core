@@ -12,7 +12,9 @@ _start:
     addi x8, x0, 8; # t8 = t1 + 8
     addi x9, x0, 9; # t9 = t1 + 9
 
+    addi x10, x0, 9; # t9 = t1 + 9
+
     add x10, x1, x2; # x10 = x1 + x2
 
-    sw x10, 0(s1) 
+    sw x10, 0(s1)
     
