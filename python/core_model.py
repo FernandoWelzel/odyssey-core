@@ -121,7 +121,7 @@ class CoreModel():
                     case 0x2:
                         self.state.register_file[instruction.rd] = 1 if self.state.register_file[instruction.rs1] < instruction.imm else 0
                     case 0x3:
-                        # Fix zero-extend
+                        # TODO: Fix zero-extend
                         self.state.register_file[instruction.rd] = 1 if self.state.register_file[instruction.rs1] < instruction.imm else 0
                 
                 # Increments pointer counter

@@ -8,106 +8,24 @@ from pathlib import Path
 
 sys.path.append(str(Path("..").resolve()))
 
-from instructions import Instruction, RInstruction, IInstruction, create_instruction
+from instructions import Instruction, RInstruction, IInstruction, create_instruction, create_random_instruction
 from core_utils import CoreBfm
 from core_model import CoreState, CoreModel, diff_state
 
 # Sequence classes
 class InstSeqItem(uvm_sequence_item):
-
-    def __init__(self, name, instruction : Instruction):
+    def __init__(self, name, instruction = None):
         super().__init__(name)
         self.instruction = instruction
 
     def randomize(self):
-        self.instruction.rd = random.randint(0, 32)
-        self.instruction.rs1 = random.randint(0, 32)
-        self.instruction.rs2 = random.randint(0, 32)
-        self.instruction.func3 = random.randint(0, 8)
-        self.instruction.func7 = random.randint(0, 128)
-        
-        self.instruction.update_inst()
+        self.instruction = create_random_instruction()
 
-class RandomRSeq(uvm_sequence):
+class RandomSeq(uvm_sequence):
     async def body(self): 
         for _ in range(10):
-            new_instruction = RInstruction(0, 0, 0, 0, 0, 0)
-            cmd_tr = InstSeqItem("cmd_tr", new_instruction)
+            cmd_tr = InstSeqItem("cmd_tr")
             cmd_tr.randomize()
-            await self.start_item(cmd_tr)
-            cmd_tr.randomize()
-            await self.finish_item(cmd_tr)
-
-class RAllSeq(uvm_sequence):
-    async def body(self):
-        instruction_vector = [
-            # ADD 3, 1, 2
-            RInstruction(0b0110011, 0b00011, 0b00001, 0b00010, 0x0, 0x00),
-
-            # SUB 3, 1, 2
-            RInstruction(0b0110011, 0b00011, 0b00001, 0b00010, 0x0, 0x20),
-
-            # XOR 3, 1, 2
-            RInstruction(0b0110011, 0b00011, 0b00001, 0b00010, 0x4, 0x00),
-
-            # OR 3, 1, 2
-            RInstruction(0b0110011, 0b00011, 0b00001, 0b00010, 0x6, 0x00),
-
-            # AND 3, 1, 2
-            RInstruction(0b0110011, 0b00011, 0b00001, 0b00010, 0x7, 0x00),
-
-            # SLL 3, 1, 2
-            RInstruction(0b0110011, 0b00011, 0b00001, 0b00010, 0x1, 0x00),
-
-            # SRL 3, 1, 2
-            RInstruction(0b0110011, 0b00011, 0b00001, 0b00010, 0x5, 0x00),
-
-            # # SRA 3, 1, 2
-            RInstruction(0b0110011, 0b00011, 0b00001, 0b00010, 0x5, 0x20),
-
-            # # SLT 3, 1, 2
-            RInstruction(0b0110011, 0b00011, 0b00001, 0b00010, 0x2, 0x00),
-
-            # # SLTU 3, 1, 2
-            RInstruction(0b0110011, 0b00011, 0b00001, 0b00010, 0x3, 0x00)
-        ]
-
-        for instruction in instruction_vector:
-            cmd_tr = InstSeqItem("cmd_tr", instruction)
-            await self.start_item(cmd_tr)
-            await self.finish_item(cmd_tr)
-
-# Main sequence
-class SimpleSeq(uvm_sequence):
-    async def body(self):
-        instruction_vector = [
-            # ADDI 1, 0, 1
-            IInstruction(0b0010011, 0b00001, 0b00000, 0b00001, 0x0),
-
-            # ADD 2, 1, 2
-            RInstruction(0b0110011, 0b00010, 0b00001, 0b00010, 0x0, 0x00),
-
-            # ADDI 3, 2, 1
-            IInstruction(0b0010011, 0b00011, 0b00010, 0b00001, 0x0),
-
-            # ADD 2, 1, 2
-            RInstruction(0b0110011, 0b00010, 0b00001, 0b00010, 0x0, 0x00),
-
-            # ADDI 1, 0, 1
-            IInstruction(0b0010011, 0b00001, 0b00000, 0b00001, 0x0),
-
-            # ADD 2, 1, 2
-            RInstruction(0b0110011, 0b00010, 0b00001, 0b00010, 0x0, 0x00),
-
-            # ADDI 1, 0, 1
-            IInstruction(0b0010011, 0b00001, 0b00000, 0b00001, 0x0),
-
-            # ADD 2, 1, 2
-            RInstruction(0b0110011, 0b00010, 0b00001, 0b00010, 0x0, 0x00)
-        ]
-
-        for instruction in instruction_vector:
-            cmd_tr = InstSeqItem("cmd_tr", instruction)
             await self.start_item(cmd_tr)
             await self.finish_item(cmd_tr)
 
@@ -115,7 +33,7 @@ class SimpleSeq(uvm_sequence):
 class TestAllSeq(uvm_sequence):
     async def body(self):
         seqr = ConfigDB().get(None, "", "SEQR")
-        random = SimpleSeq("random")
+        random = RandomSeq("random")
         await random.start(seqr)
 
 class Driver(uvm_driver):
