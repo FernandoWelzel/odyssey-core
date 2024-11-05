@@ -10,9 +10,8 @@ module decode #(
 (
     // Decode unit interface
     input  wire [DATA_WIDTH-1:0] inst,
-    input  wire pc_req,
-    output wire pc_valid,
-    output wire stall,
+    input  wire compute_req,
+    output wire compute_valid,
 
     // LSU interface
     output wire mem_req,
@@ -26,11 +25,12 @@ module decode #(
     output wire [LOG2_REGISTERS-1:0] addr_rs2,
 
     output wire [1:0] rd_select,
+    output wire rf_enable,
     output wire [DATA_WIDTH-1:0] direct_store, 
 
     // ALU interface
-    input  wire less,
-    input  wire equal,
+    input  wire less_comp,
+    input  wire equal_comp,
 
     output wire [ALU_CONTROL_BITS-1:0] alu_control,
     output wire signed_flag,
@@ -48,6 +48,10 @@ reg select_imm_reg;
 reg [DATA_WIDTH-1:0] direct_store_reg;
 reg signed_flag_reg;
 reg [BYTE_DATA_WIDTH-1:0] byte_enable_reg;
+reg rf_enable_reg;
+reg mem_req_reg;
+reg compute_valid_reg;
+reg compute_valid_reg_new;
 
 reg [6:0] opcode;
 reg [2:0] funct3;
@@ -61,7 +65,7 @@ reg [11:0] imm_i;
 reg [11:0] pc_jump;
 
 reg select_pc_reg;
-reg rd_select_reg;
+reg [1:0] rd_select_reg;
 
 // Internal assignments
 assign opcode = inst[6:0];
@@ -90,11 +94,16 @@ assign byte_enable = byte_enable_reg;
 
 assign select_pc = select_pc_reg;
 assign rd_select = rd_select_reg;
+assign rf_enable = rf_enable_reg;
 
-always @(*) begin
+assign mem_req = mem_req_reg;
+assign compute_valid = compute_valid_reg;
+
+always @(opcode, funct3, funct7, imm_i, imm_s) begin
     // TODO: Fix for pc increase
-    select_pc_reg = 0;
-    rd_select_reg = 0;
+    select_pc_reg <= 0;
+    rd_select_reg <= 0;
+    select_imm_reg <= 1'b0;
 
     // Calculate instruction
     case (opcode)
@@ -106,29 +115,29 @@ always @(*) begin
                     case (funct7)
                         // ADD
                         7'b0000000: begin
-                            alu_control_reg = ADD_SUB_OP;
+                            alu_control_reg <= ADD_SUB_OP;
                         end
 
                         // SUB
                         7'b0100000: begin
-                            alu_control_reg = ADD_SUB_OP;
+                            alu_control_reg <= ADD_SUB_OP;
                         end
 
                         // Default
                         default: begin
-                            alu_control_reg = ADD_SUB_OP;
+                            alu_control_reg <= ADD_SUB_OP;
                         end
                     endcase
                 end
 
                 // SLL - Shift Left Logical
                 3'b001: begin
-                    alu_control_reg = LLS_OP;
+                    alu_control_reg <= LLS_OP;
                 end
                 
                 // XOR
                 3'b100: begin
-                    alu_control_reg = XOR_OP;
+                    alu_control_reg <= XOR_OP;
                 end
                 
                 // SRL and SRA
@@ -136,57 +145,61 @@ always @(*) begin
                     case (funct7)
                         // SRL - Shift Right Logical
                         7'b0000000: begin
-                            alu_control_reg = RLS_OP;
+                            alu_control_reg <= RLS_OP;
                         end
 
                         // SRA - Shift Right Arithmetic
                         7'b0100000: begin
                             // TODO: Fix
-                            alu_control_reg = RLS_OP;
+                            alu_control_reg <= RLS_OP;
                         end
 
                         // Default
                         default: begin
-                            alu_control_reg = RLS_OP;
+                            alu_control_reg <= RLS_OP;
                         end
                     endcase
                 end
                 
                 // OR
                 3'b110: begin
-                    alu_control_reg = OR_OP;
+                    alu_control_reg <= OR_OP;
                 end
                 
                 // AND
                 3'b111: begin
-                    alu_control_reg = AND_OP;
+                    alu_control_reg <= AND_OP;
+                end
+
+                default: begin
+                    alu_control_reg <= ADD_SUB_OP;
                 end
             endcase
         end
 
         // I instructions
         7'b0010011: begin
-            select_imm_reg = 1'b1;
+            select_imm_reg <= 1'b1;
 
             case (funct3)
                 // ADDI
                 3'b000: begin
-                    alu_control_reg = ADD_SUB_OP;
+                    alu_control_reg <= ADD_SUB_OP;
                 end
 
                 // XORI
                 3'b100: begin
-                    alu_control_reg = XOR_OP;
+                    alu_control_reg <= XOR_OP;
                 end
 
                 // OR
                 3'b110: begin
-                    alu_control_reg = OR_OP;
+                    alu_control_reg <= OR_OP;
                 end
 
                 // AND
                 3'b111: begin
-                    alu_control_reg = AND_OP;
+                    alu_control_reg <= AND_OP;
                 end
                 
                 // Shift Left Immediate
@@ -194,11 +207,11 @@ always @(*) begin
                     case (imm_i[11:5])
                         // SLLI
                         7'h00: begin
-                            alu_control_reg = LLS_OP;
+                            alu_control_reg <= LLS_OP;
                         end
                         // Default
                         default: begin
-                            alu_control_reg = LLS_OP;
+                            alu_control_reg <= LLS_OP;
                         end
                     endcase
                 end
@@ -208,36 +221,37 @@ always @(*) begin
                     case (imm_i[11:5])
                         // SRLI
                         7'h00: begin
-                            alu_control_reg = RLS_OP;
+                            alu_control_reg <= RLS_OP;
                         end
 
                         // SRAI
                         // TODO: Fix difference with MSB extend
                         7'h20: begin
-                            alu_control_reg = RLS_OP;
+                            alu_control_reg <= RLS_OP;
                         end
 
                         // Default
                         default: begin
-                            alu_control_reg = RLS_OP;
+                            alu_control_reg <= RLS_OP;
                         end
                     endcase
                 end
 
                 // SLTI
                 3'b010: begin
-                    direct_store_reg = less ? 1 : 0;
+                    direct_store_reg <= less_comp ? 1 : 0;
                 end
 
                 // SLTIU
                 3'b011: begin
-                    signed_flag_reg = 1'b0;
+                    signed_flag_reg <= 1'b0;
                     
-                    direct_store_reg = less ? 1 : 0;
+                    direct_store_reg <= less_comp ? 1 : 0;
                 end
 
                 // Default
                 default: begin
+                    alu_control_reg <= ADD_SUB_OP;
                 end
             endcase
         end
@@ -249,23 +263,26 @@ always @(*) begin
                 3'b000: begin
                     byte_enable_reg <= 4'b0001;
 
-                    alu_control_reg = ADD_SUB_OP;
+                    alu_control_reg <= ADD_SUB_OP;
                 end
                 // SH - Store Half
                 3'b001: begin
                     byte_enable_reg <= 4'b0011;
 
-                    alu_control_reg = ADD_SUB_OP;
+                    alu_control_reg <= ADD_SUB_OP;
                 end
                 // SW - Store Word
                 3'b010: begin
                     byte_enable_reg <= 4'b1111;
 
-                    alu_control_reg = ADD_SUB_OP;
+                    alu_control_reg <= ADD_SUB_OP;
                 end
 
                 // Default
                 default: begin
+                    byte_enable_reg <= 4'b0000;
+                    
+                    alu_control_reg <= ADD_SUB_OP;
                 end
             endcase
         end
@@ -281,37 +298,84 @@ always @(*) begin
         
     // Default
     default: begin
+        alu_control_reg <= ADD_SUB_OP;
     end
     
     endcase
 end
 
 // State machine variables
-localparam DECODE = 0;
-localparam WAIT_MEM = 1;
-localparam WAIT_PC = 2;
-localparam PROCESS = 3;
+localparam S_WAIT = 0;
+localparam S_COMPUTE = 1;
+localparam S_COMPUTE_VALID = 2;
+localparam S_MEM_REQ = 3;
+localparam S_MEM_VALID = 4;
 
-// TODO: Fix integer variable
-integer c_state, n_state;
+reg [2:0] c_state, n_state;
 
-// Combinatorial - TODO: Fix state transition
+// Implementing state transition logic
 always @(*) begin
+    compute_valid_reg_new = 1'b0;
+    mem_req_reg = 1'b0;
+    rf_enable_reg = 1'b0;
+
 	case (c_state)
-        DECODE: begin
-            n_state = PROCESS;
+        S_WAIT: begin
+            if(compute_req) begin
+                n_state = S_COMPUTE;
+            end
+            else begin
+                n_state = S_WAIT;
+            end
         end
-        WAIT_MEM: begin
-            n_state = DECODE;
+        S_COMPUTE: begin
+            if(~(opcode == 7'b0000011 || opcode == 7'b1100011 || opcode == 7'b1110011)) begin
+                rf_enable_reg = 1'b1;
+            end
+
+            if(opcode == 7'b0000011 || opcode == 7'b0000011) begin
+                n_state = S_MEM_REQ;
+            end
+            else begin
+                n_state = S_COMPUTE_VALID;
+            end
         end
-        WAIT_PC: begin
-            n_state = DECODE;
+        S_COMPUTE_VALID: begin
+            compute_valid_reg_new = 1'b1;
+
+            n_state = S_WAIT;
+
+            if(compute_req) begin
+                n_state = S_COMPUTE_VALID;
+            end
+            else begin
+                n_state = S_WAIT;
+            end
         end
-        PROCESS: begin
-            n_state = DECODE;
+        S_MEM_REQ: begin
+            mem_req_reg = 1'b1;
+
+            if(mem_valid) begin
+                n_state = S_MEM_VALID;
+            end
+            else begin
+                n_state = S_MEM_REQ;
+            end
+        end
+        S_MEM_VALID: begin
+            if(opcode == 7'b0100011) begin
+                rf_enable_reg = 1'b1;
+            end
+
+            if(mem_valid) begin
+                n_state = S_MEM_VALID;
+            end
+            else begin
+                n_state = S_COMPUTE_VALID;
+            end
         end
         default: begin
-            n_state = n_state;
+            n_state = S_WAIT;
         end
     endcase
 end
@@ -319,10 +383,12 @@ end
 // Sequential - FSM logic
 always @(posedge clk) begin
     if(rst) begin
-		c_state <= DECODE;
+		c_state <= S_WAIT;
     end
     else begin
         c_state <= n_state;
+
+        compute_valid_reg <= compute_valid_reg_new;
     end
 end
 

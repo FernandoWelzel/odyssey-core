@@ -10,9 +10,11 @@ module register_file #(
     input  wire [LOG2_REGISTERS-1:0] addr_rs2,
     input  wire [LOG2_REGISTERS-1:0] addr_rd,
 
+    input  wire [DATA_WIDTH-1:0] data_rd,
     output wire [DATA_WIDTH-1:0] data_rs1,
     output wire [DATA_WIDTH-1:0] data_rs2,
-    input  wire [DATA_WIDTH-1:0] data_rd,
+
+    input  wire rf_enable,
 
     input  wire clk,
     input  wire rst
@@ -31,14 +33,15 @@ integer j;
 generate;
     genvar i;
 
-    for (i = 0; i<REGISTERS; i=i+1) begin
-        if(i == 0) begin
+    for (i = 0; i<REGISTERS; i=i+1) begin : G_MUX
+        if(i == 0) begin : G_ZERO
             assign registers_new[i] = 0;
         end
-        else begin
+        else begin : G_REST
             assign registers_new[i] = (addr_rd == i) ? data_rd : registers[i];
         end
     end    
+
 endgenerate
 
 // Generating output connection
@@ -56,7 +59,12 @@ always @(posedge clk) begin
     end
     else begin
         for (j=0; j<REGISTERS; ++j) begin
-            registers[j] <= registers_new[j];        
+            if(rf_enable) begin
+                registers[j] <= registers_new[j];        
+            end
+            else begin
+                registers[j] <= registers[j];        
+            end
         end
     end
 end

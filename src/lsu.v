@@ -22,11 +22,11 @@ module lsu #(
     input  wire [DATA_WIDTH-1:0] rdata,
     output wire [DATA_WIDTH-1:0] wdata,
     output wire data_we,
-    output wire [BYTE_DATA_WIDTH-1:0] byte_enable,
+    input  wire [BYTE_DATA_WIDTH-1:0] byte_enable,
 
     // Global signals
-    output wire clk,
-    output wire rst
+    input  wire clk,
+    input  wire rst
 );
 
 endmodule

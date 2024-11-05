@@ -24,21 +24,15 @@ module core #(
     output wire [DATA_WIDTH-1:0] wdata,
 
     // Global interfaces
-    // input  wire clk,
+    input  wire clk,
     input  wire rst
 );
-
-bit clk;
-
-initial clk = 0;
-always #5 clk = ~clk;
 
 // Decode unit interface
 reg [DATA_WIDTH-1:0] pc;
 reg [DATA_WIDTH-1:0] new_pc;
-reg pc_req;
-reg pc_valid;
-reg stall;
+reg compute_req;
+reg compute_valid;
 
 // LSU interface
 reg mem_req;
@@ -57,10 +51,11 @@ reg [LOG2_REGISTERS-1:0] addr_rs2;
 
 reg [1:0] rd_select;
 reg [DATA_WIDTH-1:0] direct_store;
+reg rf_enable;
 
 // ALU interface
-reg less;
-reg equal;
+reg less_comp;
+reg equal_comp;
 
 reg [ALU_CONTROL_BITS-1:0] alu_control;
 reg signed_flag;
@@ -84,9 +79,8 @@ fetch fetch_u (
     .inst_valid(inst_valid),
     .inst_data(inst_data),
     .inst(inst),
-    .pc_req(pc_req),
-    .pc_valid(pc_valid),
-    .stall(stall),
+    .compute_req(compute_req),
+    .compute_valid(compute_valid),
     .pc(pc),
     .new_pc(new_pc),
     .clk(clk),
@@ -96,9 +90,8 @@ fetch fetch_u (
 // Decode instantiation
 decode decode_u (
     .inst(inst),
-    .pc_req(pc_req),
-    .pc_valid(pc_valid),
-    .stall(stall),
+    .compute_req(compute_req),
+    .compute_valid(compute_valid),
     .mem_req(mem_req),
     .mem_we(mem_we),
     .mem_valid(mem_valid),
@@ -107,9 +100,10 @@ decode decode_u (
     .addr_rs1(addr_rs1),
     .addr_rs2(addr_rs2),
     .rd_select(rd_select),
+    .rf_enable(rf_enable),
     .direct_store(direct_store),
-    .less(less),
-    .equal(equal),
+    .less_comp(less_comp),
+    .equal_comp(equal_comp),
     .alu_control(alu_control),
     .signed_flag(signed_flag),
     .imm(imm),
@@ -124,6 +118,7 @@ alu alu_u (
     .a(a),
     .b(b),
     .q(q),
+    .signed_flag(signed_flag),
     .less_comp(less_comp),
     .equal_comp(equal_comp),
     .alu_control(alu_control)
@@ -137,6 +132,7 @@ register_file register_file_u (
     .data_rd(data_rd),
     .data_rs1(data_rs1),
     .data_rs2(data_rs2),
+    .rf_enable(rf_enable),
     .clk(clk),
     .rst(rst)
 );

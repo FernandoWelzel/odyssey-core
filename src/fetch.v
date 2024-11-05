@@ -1,7 +1,7 @@
 // Processor fetch unit
 module fetch #(
     parameter DATA_WIDTH = 32,
-    parameter START_ADDR = 32'h00000000 
+    parameter START_ADDR = 32'hFFFFFFFF
 )
 (
     // Instruction cache interface
@@ -13,9 +13,8 @@ module fetch #(
 
     // Decode unit interface
     output wire [DATA_WIDTH-1:0] inst,
-    output wire pc_req,
-    input  wire pc_valid,
-    input  wire stall,
+    output wire compute_req,
+    input  wire compute_valid,
     
     // ALU interface
     output wire [DATA_WIDTH-1:0] pc,
@@ -27,57 +26,65 @@ module fetch #(
 );
 
 // State machine variables
-localparam UPDATE = 0;
-localparam WAIT_MEM = 1;
-localparam WAIT_PC = 2;
+localparam S_INST_REQ = 0;
+localparam S_INST_VALID = 1;
+localparam S_COMPUTE_REQ = 2;
+localparam S_COMPUTE_VALID = 3;
 
-integer c_state, n_state;
+reg [1:0] c_state, n_state;
 
 // Internal variables
 reg [DATA_WIDTH-1:0] inst_addr_reg;
 reg [DATA_WIDTH-1:0] inst_reg;
+
 reg inst_req_reg;
+reg compute_req_reg;
+reg compute_req_reg_new;
 
 // Combinatorial
 always @(*) begin
+    inst_req_reg = 1'b0;
+    compute_req_reg_new = 1'b0;
+
 	case (c_state)
-        UPDATE: begin
+        S_INST_REQ: begin
             inst_req_reg = 1'b1;
 
-            if(inst_req) begin
-                n_state = WAIT_MEM;
-            end
-            else if (pc_req) begin
-                n_state = WAIT_PC;
+            if(inst_valid) begin
+                n_state = S_INST_VALID;
             end
             else begin
-                n_state = UPDATE;
+                n_state = S_INST_REQ;
             end
         end
-        WAIT_MEM: begin
-            inst_req_reg = 1'b0;
-
+        S_INST_VALID: begin
             if(inst_valid) begin
-                n_state = UPDATE;
+                n_state = S_INST_VALID;
             end
-            else begin 
-                n_state = WAIT_MEM;
+            else begin
+                n_state = S_COMPUTE_REQ;
             end
         end
-        WAIT_PC: begin
-            inst_req_reg = 1'b0;
+        S_COMPUTE_REQ: begin
+            compute_req_reg_new = 1'b1;
 
-            if(pc_valid) begin
-                n_state = UPDATE;
+            if(compute_valid) begin
+                n_state = S_COMPUTE_VALID;
             end
-            else begin 
-                n_state = WAIT_PC;
+            else begin
+                n_state = S_COMPUTE_REQ;
+            end
+        end
+        S_COMPUTE_VALID: begin
+            if(compute_valid) begin
+                n_state = S_COMPUTE_VALID;
+            end
+            else begin
+                n_state = S_INST_REQ;
             end
         end
         default: begin
-            inst_req_reg = 1'b0;
-
-            n_state = n_state;
+            n_state = S_INST_REQ;
         end
     endcase
 end
@@ -88,19 +95,19 @@ always @(posedge clk) begin
         // Initialize first memory addr
         inst_addr_reg <= START_ADDR;
 
-        inst_reg = 0;
-
-		c_state <= UPDATE;
+		c_state <= S_INST_REQ;
     end
     else begin
         // TODO: Fix to account for jumps in the address    
-        if(c_state == UPDATE) begin
-            inst_addr_reg = inst_addr_reg + 1; 
+        if(c_state == S_INST_VALID) begin
+            inst_addr_reg <= inst_addr_reg + 1;
 
-            inst_reg = inst_data;
+            inst_reg <= inst_data;
         end
 
 		c_state <= n_state;
+
+        compute_req_reg <= compute_req_reg_new;
     end
 end
 
@@ -110,5 +117,7 @@ assign inst_addr = inst_addr_reg;
 assign inst_req = inst_req_reg;
 
 assign inst = inst_reg;
+
+assign compute_req = compute_req_reg;
 
 endmodule
