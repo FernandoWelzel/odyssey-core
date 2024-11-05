@@ -7,31 +7,31 @@ module core_testbench #(
 )
 (
     // Instruction cache interface
-    output wire inst_req,
-    output wire [DATA_WIDTH-1:0] inst_addr,
+    output inst_req,
+    output [DATA_WIDTH-1:0] inst_addr,
 
-    input  wire inst_valid,
-    input  wire [DATA_WIDTH-1:0] inst_data,
+    input  inst_valid,
+    input  [DATA_WIDTH-1:0] inst_data,
 
     // Data cache interface
-    output wire data_req,
-    input  wire data_valid,
-    output wire data_we,
-    output wire [BYTE_DATA_WIDTH-1:0] byte_enable,
+    output data_req,
+    input  data_valid,
+    output data_we,
+    output [BYTE_DATA_WIDTH-1:0] byte_enable,
 
-    output wire [DATA_WIDTH-1:0] data_addr,
-    input  wire [DATA_WIDTH-1:0] rdata,
-    output wire [DATA_WIDTH-1:0] wdata,
+    output [DATA_WIDTH-1:0] data_addr,
+    input  [DATA_WIDTH-1:0] rdata,
+    output [DATA_WIDTH-1:0] wdata,
 
     // Global interfaces
-    input  wire rst
+    input  rst
 );
 
 // Generating clock signal
 bit clk;
 
 initial clk = 0;
-always #5 clk = ~clk;
+always #5 clk <= ~clk;
 
 core #(
     .DATA_WIDTH(DATA_WIDTH),

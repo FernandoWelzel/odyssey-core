@@ -1,11 +1,17 @@
 import cocotb
 from cocotb.triggers import FallingEdge
 from cocotb.queue import QueueEmpty, Queue
+from cocotb.log import get_sim_time
 
 import enum
 import logging
 
 from pyuvm import utility_classes
+
+from core_model import CoreModel, CoreState
+from instructions import Instruction
+
+import copy
 
 logging.basicConfig(level=logging.NOTSET)
 logger = logging.getLogger()
@@ -18,37 +24,11 @@ def get_int(signal):
         sig = 0
     return sig
 
-class Instruction():
-    def __init__(self, opcode : int):
-        # TODO: Assert size of opcode
-        self.opcode = opcode
-
-class RInstruction(Instruction):
-    def __init__(self, opcode : int, rd : int, rs1 : int, rs2 : int, func3 : int, func7 : int):
-        super().__init__(opcode)
-        
-        # TODO: Assert size of each of the variables
-        self.rd = rd
-        self.rs1 = rs1
-        self.rs2 = rs2
-        self.func3 = func3
-        self.func7 = func7
-
-        # Calculate the new instruction
-        self.update_inst()
-    
-    def __str__(self) -> str:
-        return f"R type instruction : {'0x{0:08X}'.format(self.inst)}"
-
-    def update_inst(self):
-        # TODO: Assert size of new variables
-        self.inst = self.opcode + (self.rd << 7) + (self.rs1 << 15) + (self.rs2 << 20) + (self.func3 << 12) + (self.func7 << 25)
-    
-# TODO: Make all other instructions types
-
 class CoreBfm(metaclass=utility_classes.Singleton):
     def __init__(self):
         self.dut = cocotb.top
+        self.model = CoreModel()
+        
         self.driver_queue = Queue(maxsize=1)
         self.cmd_mon_queue = Queue(maxsize=0)
         self.result_mon_queue = Queue(maxsize=0)
@@ -79,32 +59,51 @@ class CoreBfm(metaclass=utility_classes.Singleton):
         while True:
             await FallingEdge(self.dut.clk)
             request = get_int(self.dut.inst_req)
-            address = get_int(self.dut.inst_addr)
+
             if request:
                 try:
+                    # Get new instruction
                     current_instruction = self.driver_queue.get_nowait()
+                    
+                    # Sends instruction to DUT
                     self.dut.inst_data.value = current_instruction.instruction.inst
                     self.dut.inst_valid.value = 1
+
                 except QueueEmpty:
                     pass
-
-    async def cmd_mon_bfm(self):
+            else:
+                self.dut.inst_valid.value = 0
+                
         # TODO: Fix being the same as result
+    async def cmd_mon_bfm(self):
         prev_request = 0
         while True:
             await FallingEdge(self.dut.clk)
             request = get_int(self.dut.inst_req)
             if request == 1 and prev_request == 0:
-                self.cmd_mon_queue.put_nowait(self.dut.inst_addr)
+                self.cmd_mon_queue.put_nowait(self.dut.inst_data.value)
+
             prev_request = request
 
     async def result_mon_bfm(self):
         prev_request = 0
+
+        state = CoreState()
+        
         while True:
             await FallingEdge(self.dut.clk)
             request = get_int(self.dut.inst_req)
-            if request == 1 and prev_request == 0:
-                self.result_mon_queue.put_nowait(self.dut.inst_addr)
+
+            if request == 0 and prev_request == 1:
+                # Getting registers from internal values
+                state.register_file = self.dut.dut.register_file_u.registers.value
+                state.pc = self.dut.inst_addr
+
+                # Store as int values
+                state.to_int()
+
+                self.result_mon_queue.put_nowait(copy.deepcopy(state))
+
             prev_request = request
 
     def start_bfm(self):
