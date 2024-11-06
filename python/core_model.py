@@ -100,7 +100,7 @@ class CoreModel():
 
                 # Increments pointer counter
                 self.state.pc = self.state.pc + 1
-        
+
             # Immediate operations
             case 0b0010011:
                 match instruction.func3:
@@ -113,16 +113,43 @@ class CoreModel():
                     case 0x7:
                         self.state.register_file[instruction.rd] = self.state.register_file[instruction.rs1] & instruction.imm
                     case 0x1:
-                        # TODO: Exception for immediate value
-                        self.state.register_file[instruction.rd] = self.state.register_file[instruction.rs1] << (instruction.imm & 0b11111)
+                        if instruction.imm <= 31:
+                            self.state.register_file[instruction.rd] = self.state.register_file[instruction.rs1] << instruction.imm
+                        else:
+                            raise Exception
                     case 0x5:
-                        # TODO: Exception for immediate value and msb-extend
-                        self.state.register_file[instruction.rd] = self.state.register_file[instruction.rs1] >> (instruction.imm & 0b11111)
+                        match instruction.imm >> 5:
+                            case 0x00:
+                                self.state.register_file[instruction.rd] = self.state.register_file[instruction.rs1] >> instruction.imm
+                            case 0x20:
+                                # TODO: Fix MSB-extends
+                                self.state.register_file[instruction.rd] = self.state.register_file[instruction.rs1] >> instruction.imm
+                            case _:
+                                raise Exception
                     case 0x2:
                         self.state.register_file[instruction.rd] = 1 if self.state.register_file[instruction.rs1] < instruction.imm else 0
                     case 0x3:
-                        # TODO: Fix zero-extend
+                        # TODO: Zero extends
                         self.state.register_file[instruction.rd] = 1 if self.state.register_file[instruction.rs1] < instruction.imm else 0
+
+                # Increments pointer counter
+                self.state.pc = self.state.pc + 1
+
+            # Immediate operations - Load
+            case 0b0000011:
+                match instruction.func3:
+                    case 0x0:
+                        self.state.register_file[instruction.rd] = (self.state.register_file[instruction.rs1] + instruction.imm) & 0xFF
+                    case 0x1:
+                        self.state.register_file[instruction.rd] = (self.state.register_file[instruction.rs1] + instruction.imm) & 0xFFFF
+                    case 0x2:
+                        self.state.register_file[instruction.rd] = (self.state.register_file[instruction.rs1] + instruction.imm) & 0xFFFFFFFF
+                    case 0x4:
+                        # TODO: Fix zero extend
+                        self.state.register_file[instruction.rd] = (self.state.register_file[instruction.rs1] + instruction.imm) & 0xFF
+                    case 0x5:
+                        # TODO: Fix zero extend
+                        self.state.register_file[instruction.rd] = (self.state.register_file[instruction.rs1] + instruction.imm) & 0xFFFF
                 
                 # Increments pointer counter
                 self.state.pc = self.state.pc + 1

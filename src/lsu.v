@@ -12,8 +12,9 @@ module lsu #(
     input  wire [DATA_WIDTH-1:0] mem_addr,
     output wire [DATA_WIDTH-1:0] result_data,
 
-    output wire [DATA_WIDTH-1:0] mem_rdata,    
     input  wire [DATA_WIDTH-1:0] mem_wdata,
+
+    input  wire [BYTE_DATA_WIDTH-1:0] mem_byte_enable,
 
     // Data cache interface
     output wire data_req,
@@ -22,11 +23,24 @@ module lsu #(
     input  wire [DATA_WIDTH-1:0] rdata,
     output wire [DATA_WIDTH-1:0] wdata,
     output wire data_we,
-    input  wire [BYTE_DATA_WIDTH-1:0] byte_enable,
-
-    // Global signals
-    input  wire clk,
-    input  wire rst
+    output wire [BYTE_DATA_WIDTH-1:0] byte_enable
 );
+
+assign data_req = mem_req;
+assign data_we = mem_we;
+assign data_addr = mem_addr;
+assign byte_enable = mem_byte_enable;
+assign wdata = mem_wdata;
+
+assign mem_valid = data_valid;
+
+// Byte enable connection
+generate;
+    genvar i;
+
+    for (i=0; i<BYTE_DATA_WIDTH; ++i) begin
+        assign result_data[(i+1)*8-1:i*8] = rdata[(i+1)*8-1:i*8] & {8{mem_byte_enable[i]}};
+    end
+endgenerate
 
 endmodule

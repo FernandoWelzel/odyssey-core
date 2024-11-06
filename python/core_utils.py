@@ -58,9 +58,11 @@ class CoreBfm(metaclass=utility_classes.Singleton):
     async def driver_bfm(self):
         while True:
             await FallingEdge(self.dut.clk)
-            request = get_int(self.dut.inst_req)
+            inst_request = get_int(self.dut.inst_req)
+            data_request = get_int(self.dut.data_req)
 
-            if request:
+            # Sends new instruction
+            if inst_request:
                 try:
                     # Get new instruction
                     current_instruction = self.driver_queue.get_nowait()
@@ -73,8 +75,15 @@ class CoreBfm(metaclass=utility_classes.Singleton):
                     pass
             else:
                 self.dut.inst_valid.value = 0
+            
+            # Sends new data or write into memory the result
+            if data_request:
+                # Sends instruction to DUT
+                self.dut.rdata.value = self.dut.data_addr.value
+                self.dut.data_valid.value = 1
+            else:
+                self.dut.data_valid.value = 0
                 
-        # TODO: Fix being the same as result
     async def cmd_mon_bfm(self):
         prev_request = 0
         while True:
@@ -87,9 +96,11 @@ class CoreBfm(metaclass=utility_classes.Singleton):
 
     async def result_mon_bfm(self):
         prev_request = 0
+        count = 0
 
+        # Initializes state
         state = CoreState()
-        
+
         while True:
             await FallingEdge(self.dut.clk)
             request = get_int(self.dut.inst_req)
@@ -103,6 +114,15 @@ class CoreBfm(metaclass=utility_classes.Singleton):
                 state.to_int()
 
                 self.result_mon_queue.put_nowait(copy.deepcopy(state))
+
+                count = 0
+            
+            elif count == 100:
+                raise Exception
+
+            else:
+                # Increases count for number of unused clocks
+                count += 1
 
             prev_request = request
 

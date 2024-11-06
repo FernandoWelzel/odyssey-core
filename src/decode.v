@@ -17,7 +17,7 @@ module decode #(
     output wire mem_req,
     output wire mem_we,
     input  wire mem_valid,
-    output wire [BYTE_DATA_WIDTH-1:0] byte_enable,
+    output wire [BYTE_DATA_WIDTH-1:0] mem_byte_enable,
 
     // Register file interface
     output wire [LOG2_REGISTERS-1:0] addr_rd,
@@ -47,11 +47,12 @@ reg [ALU_CONTROL_BITS-1:0] alu_control_reg;
 reg select_imm_reg;
 reg [DATA_WIDTH-1:0] direct_store_reg;
 reg signed_flag_reg;
-reg [BYTE_DATA_WIDTH-1:0] byte_enable_reg;
+reg [BYTE_DATA_WIDTH-1:0] mem_byte_enable_reg;
 reg rf_enable_reg;
 reg mem_req_reg;
 reg compute_valid_reg;
 reg compute_valid_reg_new;
+reg mem_we_reg;
 
 reg [6:0] opcode;
 reg [2:0] funct3;
@@ -90,7 +91,7 @@ assign imm = (imm_i[11]) ? {20'hFFFFF, imm_i} : {20'h00000, imm_i};
 assign alu_control = alu_control_reg;
 assign select_imm = select_imm_reg;
 assign signed_flag = signed_flag_reg;
-assign byte_enable = byte_enable_reg;
+assign mem_byte_enable = mem_byte_enable_reg;
 
 assign select_pc = select_pc_reg;
 assign rd_select = rd_select_reg;
@@ -99,7 +100,11 @@ assign rf_enable = rf_enable_reg;
 assign mem_req = mem_req_reg;
 assign compute_valid = compute_valid_reg;
 
-always @(opcode, funct3, funct7, imm_i, imm_s) begin
+assign mem_we = mem_we_reg;
+
+assign direct_store = direct_store_reg;
+
+always @(opcode, funct3, funct7, imm_i, imm_s, less_comp) begin
     // TODO: Fix for pc increase
     select_pc_reg <= 0;
     rd_select_reg <= 0;
@@ -171,13 +176,25 @@ always @(opcode, funct3, funct7, imm_i, imm_s) begin
                     alu_control_reg <= AND_OP;
                 end
 
+                // SLT
+                3'b010: begin
+                    direct_store_reg <= less_comp ? 1 : 0;
+                    rd_select_reg <= 2'b01;
+                end
+                
+                // SLTU
+                3'b011: begin
+                    direct_store_reg <= less_comp ? 1 : 0;
+                    rd_select_reg <= 2'b01;
+                end
+                
                 default: begin
                     alu_control_reg <= ADD_SUB_OP;
                 end
             endcase
         end
 
-        // I instructions
+        // I instructions - Execute
         7'b0010011: begin
             select_imm_reg <= 1'b1;
 
@@ -240,6 +257,8 @@ always @(opcode, funct3, funct7, imm_i, imm_s) begin
                 // SLTI
                 3'b010: begin
                     direct_store_reg <= less_comp ? 1 : 0;
+
+                    rd_select_reg <= 2'b01;
                 end
 
                 // SLTIU
@@ -247,6 +266,8 @@ always @(opcode, funct3, funct7, imm_i, imm_s) begin
                     signed_flag_reg <= 1'b0;
                     
                     direct_store_reg <= less_comp ? 1 : 0;
+                    
+                    rd_select_reg <= 2'b01;
                 end
 
                 // Default
@@ -255,32 +276,72 @@ always @(opcode, funct3, funct7, imm_i, imm_s) begin
                 end
             endcase
         end
-        
+
+        // I instructions - Load
+        7'b0000011: begin
+            select_imm_reg <= 1'b1;
+            alu_control_reg <= ADD_SUB_OP;
+            mem_we_reg <= 1'b0;
+            rd_select_reg <= 2'b10;
+
+            case (funct3)
+                // Byte
+                3'b000: begin
+                    mem_byte_enable_reg <= 4'b0001;
+                end
+
+                // Half
+                3'b001: begin
+                    mem_byte_enable_reg <= 4'b0011;
+                end
+
+                // Word
+                3'b010: begin
+                    mem_byte_enable_reg <= 4'b1111;
+                end
+
+                // TODO: Fix zero extend - Byte
+                3'b100: begin
+                    mem_byte_enable_reg <= 4'b0001;
+                end
+
+                // TODO: Fix zero extend - Half
+                3'b101: begin
+                    mem_byte_enable_reg <= 4'b0011;
+                end
+
+                // Default
+                default: begin
+                    mem_byte_enable_reg <= 4'b0000;
+                end
+            endcase
+        end
+
         // S instructions
         7'b0100011: begin
             case (funct3)
                 // SB - Store Byte
                 3'b000: begin
-                    byte_enable_reg <= 4'b0001;
+                    mem_byte_enable_reg <= 4'b0001;
 
                     alu_control_reg <= ADD_SUB_OP;
                 end
                 // SH - Store Half
                 3'b001: begin
-                    byte_enable_reg <= 4'b0011;
+                    mem_byte_enable_reg <= 4'b0011;
 
                     alu_control_reg <= ADD_SUB_OP;
                 end
                 // SW - Store Word
                 3'b010: begin
-                    byte_enable_reg <= 4'b1111;
+                    mem_byte_enable_reg <= 4'b1111;
 
                     alu_control_reg <= ADD_SUB_OP;
                 end
 
                 // Default
                 default: begin
-                    byte_enable_reg <= 4'b0000;
+                    mem_byte_enable_reg <= 4'b0000;
                     
                     alu_control_reg <= ADD_SUB_OP;
                 end
@@ -363,7 +424,7 @@ always @(*) begin
             end
         end
         S_MEM_VALID: begin
-            if(opcode == 7'b0100011) begin
+            if(opcode == 7'b0000011) begin
                 rf_enable_reg = 1'b1;
             end
 

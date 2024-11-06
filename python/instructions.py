@@ -76,10 +76,10 @@ class IInstruction(Instruction):
                 super().__init__("IM")
             case 0b1100111:
                 super().__init__("IJ")
-            case 0b0010011:
+            case 0b1110011:
                 super().__init__("IE")
             case _:
-                return Exception
+                raise Exception
         
         # TODO: Assert size of each of the variables
         self.rd = rd
@@ -136,12 +136,12 @@ def create_instruction(instruction_bin):
             instruction = IInstruction(0b0010011, (instruction_bin >> 7) & 0b11111, (instruction_bin >> 15) & 0b11111, (instruction_bin >> 20) & 0b111111111111, (instruction_bin >> 12) & 0b111)
 
         # IM instruction
-        case 0b0010011:
-            instruction = IInstruction(0b0010011, (instruction_bin >> 7) & 0b11111, (instruction_bin >> 15) & 0b11111, (instruction_bin >> 20) & 0b111111111111, (instruction_bin >> 12) & 0b111)
-
-        # IJ instruction
         case 0b0000011:
             instruction = IInstruction(0b0000011, (instruction_bin >> 7) & 0b11111, (instruction_bin >> 15) & 0b11111, (instruction_bin >> 20) & 0b111111111111, (instruction_bin >> 12) & 0b111)
+
+        # IJ instruction
+        case 0b1100111:
+            instruction = IInstruction(0b1100111, (instruction_bin >> 7) & 0b11111, (instruction_bin >> 15) & 0b11111, (instruction_bin >> 20) & 0b111111111111, (instruction_bin >> 12) & 0b111)
 
         # IE instruction
         case 0b1110011:
@@ -161,7 +161,9 @@ def create_random_instruction():
             instruction = RInstruction(0, 0, 0, 0, 0)
         
         case "I":
-            sub_type = random.choice(["I", "IM", "IJ", "IE"])
+            # TODO: Enable other instructions
+            # sub_type = random.choice(["I", "IM", "IJ", "IE"])
+            sub_type = random.choice(["I", "IM"])
             sub_type_opcode = type_dictionary[sub_type]
 
             instruction = IInstruction(sub_type_opcode, 0, 0, 0, 0)

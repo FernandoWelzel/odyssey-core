@@ -38,10 +38,9 @@ reg compute_valid;
 reg mem_req;
 reg mem_we;
 reg mem_valid;
-reg [BYTE_DATA_WIDTH-1:0] byte_enable_lsu;
+reg [BYTE_DATA_WIDTH-1:0] mem_byte_enable;
 reg [DATA_WIDTH-1:0] mem_addr;
 reg [DATA_WIDTH-1:0] result_data;
-reg [DATA_WIDTH-1:0] mem_rdata;
 reg [DATA_WIDTH-1:0] mem_wdata;
 
 // Register file interface
@@ -95,7 +94,7 @@ decode decode_u (
     .mem_req(mem_req),
     .mem_we(mem_we),
     .mem_valid(mem_valid),
-    .byte_enable(byte_enable),
+    .mem_byte_enable(mem_byte_enable),
     .addr_rd(addr_rd),
     .addr_rs1(addr_rs1),
     .addr_rs2(addr_rs2),
@@ -144,23 +143,23 @@ lsu lsu_u (
     .mem_valid(mem_valid),
     .mem_addr(mem_addr),
     .result_data(result_data),
-    .mem_rdata(mem_rdata),
     .mem_wdata(mem_wdata),
+    .mem_byte_enable(mem_byte_enable),
     .data_req(data_req),
     .data_addr(data_addr),
     .data_valid(data_valid),
     .rdata(rdata),
     .wdata(wdata),
     .data_we(data_we),
-    .byte_enable(byte_enable),
-    .clk(clk),
-    .rst(rst)
+    .byte_enable(byte_enable)
 );
 
 assign a = (select_pc) ? pc : data_rs1;
 assign b = (select_imm) ? imm : data_rs2;
 
+assign mem_addr = q;
+
 // TODO: Fix
-assign data_rd = (rd_select == 2'b00) ? q : direct_store; 
+assign data_rd = (rd_select == 2'b00) ? q : ((rd_select == 2'b01) ? direct_store : result_data); 
 
 endmodule
