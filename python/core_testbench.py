@@ -23,7 +23,7 @@ class InstSeqItem(uvm_sequence_item):
 
 class RandomSeq(uvm_sequence):
     async def body(self): 
-        for _ in range(10):
+        for _ in range(25):
             cmd_tr = InstSeqItem("cmd_tr")
             cmd_tr.randomize()
             await self.start_item(cmd_tr)

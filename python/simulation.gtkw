@@ -1,0 +1,108 @@
+[*]
+[*] GTKWave Analyzer v3.3.118 (w)1999-2023 BSI
+[*] Wed Nov  6 00:42:29 2024
+[*]
+[dumpfile] "/home/welzelf/Documents/Projects/odyssey-core/python/simulation.vcd"
+[dumpfile_mtime] "Wed Nov  6 00:42:03 2024"
+[dumpfile_size] 33133
+[savefile] "/home/welzelf/Documents/Projects/odyssey-core/python/simulation.gtkw"
+[timestart] 265
+[size] 1920 1003
+[pos] 1964 73
+*-8.430668 6470 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] core_testbench.
+[treeopen] core_testbench.dut.
+[sst_width] 209
+[signals_width] 254
+[sst_expanded] 1
+[sst_vpaned_height] 174
+@200
+-Instruction Cache
+@22
+core_testbench.dut.inst_addr[31:0]
+core_testbench.dut.inst_data[31:0]
+@28
+core_testbench.dut.inst_req
+core_testbench.dut.inst_valid
+@200
+-Fetch
+@28
+core_testbench.dut.fetch_u.compute_req
+core_testbench.dut.fetch_u.compute_valid
+core_testbench.dut.fetch_u.inst_req
+core_testbench.dut.fetch_u.inst_valid
+@22
+core_testbench.dut.fetch_u.inst_data[31:0]
+core_testbench.dut.fetch_u.new_pc[31:0]
+core_testbench.dut.fetch_u.pc[31:0]
+@28
+core_testbench.dut.fetch_u.c_state[1:0]
+core_testbench.dut.fetch_u.n_state[1:0]
+@200
+-Instruction Decode
+@22
+core_testbench.dut.decode_u.inst[31:0]
+core_testbench.dut.decode_u.opcode[6:0]
+core_testbench.dut.decode_u.addr_rd[4:0]
+core_testbench.dut.decode_u.addr_rs1[4:0]
+core_testbench.dut.decode_u.addr_rs2[4:0]
+@28
+core_testbench.dut.decode_u.funct3[2:0]
+@22
+core_testbench.dut.decode_u.funct7[6:0]
+@28
+core_testbench.dut.decode_u.alu_control[2:0]
+core_testbench.dut.decode_u.select_imm
+core_testbench.dut.decode_u.c_state[2:0]
+core_testbench.dut.decode_u.n_state[2:0]
+@200
+-Decode
+@22
+core_testbench.dut.decode_u.imm[31:0]
+core_testbench.dut.decode_u.imm_i[11:0]
+core_testbench.dut.decode_u.imm_s[11:0]
+@200
+-ALU
+@28
+core_testbench.dut.alu_u.alu_control[2:0]
+@22
+core_testbench.dut.alu_u.a[31:0]
+core_testbench.dut.alu_u.b[31:0]
+core_testbench.dut.alu_u.q[31:0]
+@28
+core_testbench.dut.alu_u.equal_comp
+core_testbench.dut.alu_u.less_comp
+core_testbench.dut.alu_u.signed_flag
+@200
+-Register file
+@22
+core_testbench.dut.register_file_u.addr_rd[4:0]
+core_testbench.dut.register_file_u.addr_rs1[4:0]
+core_testbench.dut.register_file_u.addr_rs2[4:0]
+core_testbench.dut.register_file_u.data_rd[31:0]
+core_testbench.dut.register_file_u.data_rs1[31:0]
+core_testbench.dut.register_file_u.data_rs2[31:0]
+@28
+core_testbench.dut.register_file_u.rf_enable
+@200
+-LSU
+@28
+core_testbench.dut.lsu_u.data_req
+core_testbench.dut.lsu_u.data_valid
+@22
+core_testbench.dut.lsu_u.data_addr[31:0]
+core_testbench.dut.lsu_u.rdata[31:0]
+core_testbench.dut.lsu_u.result_data[31:0]
+@23
+core_testbench.dut.lsu_u.wdata[31:0]
+@28
+core_testbench.dut.lsu_u.data_we
+@22
+core_testbench.dut.lsu_u.byte_enable[3:0]
+@200
+-Global signals
+@28
+core_testbench.dut.clk
+core_testbench.dut.rst
+[pattern_trace] 1
+[pattern_trace] 0
