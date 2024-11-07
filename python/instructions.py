@@ -89,9 +89,6 @@ class IInstruction(Instruction):
 
         # Calculate the new instruction
         self.update_inst()
-    
-    def __str__(self) -> str:
-        return f"R type instruction : {'0x{0:08X}'.format(self.inst)}"
 
     def update_inst(self):
         # TODO: Assert size of new variables
@@ -119,7 +116,80 @@ class IInstruction(Instruction):
             self.imm = random.randint(0, 4095)
         
         self.update_inst()
+
+class SInstruction(Instruction):
+    def __init__(self, rs1 : int, rs2 : int, imm : int, func3 : int):
+        super().__init__("S")
+        
+        # TODO: Assert size of each of the variables
+        self.rs1 = rs1
+        self.rs2 = rs2
+        self.imm = imm
+        self.func3 = func3
+
+        # Calculate the new instruction
+        self.update_inst()
+
+    def update_inst(self):
+        # TODO: Assert size of new variables
+        # TODO: Fix horrible looking code
+        
+        bit4_0 = (self.imm & 0b11111)
+        bit11_5 = ((self.imm & 0b111111100000) >> 5)
+        
+        self.inst = self.opcode | (self.rs1 << 15) | (self.rs2 << 20) | (self.func3 << 12)  | (bit4_0 << 7) | (bit11_5 << 25)
     
+    def randomize(self):
+        self.rs1 = random.randint(0, 31)
+        self.rs2 = random.randint(0, 31)
+    
+        self.func3 = random.choice([0x0, 0x1, 0x4, 0x5, 0x6, 0x7])
+    
+        self.imm = random.randint(0, 4095)
+        
+        self.update_inst()
+
+class BInstruction(Instruction):
+    def __init__(self, rs1 : int, rs2 : int, imm : int, func3 : int):
+        super().__init__("B")
+        
+        # TODO: Assert size of each of the variables
+        self.rs1 = rs1
+        self.rs2 = rs2
+        self.imm = imm
+        self.func3 = func3
+
+        # Calculate the new instruction
+        self.update_inst()
+    
+    def update_inst(self):
+        # TODO: Assert size of new variables
+        # TODO: Fix horrible looking code
+        if (self.imm & 0x400) == 0x400:
+            bit11 = 0b1
+        else:
+            bit11 = 0b0  
+        
+        if (self.imm & 0x800) == 0x800:
+            bit12 = 0b1
+        else:
+            bit12 = 0b0
+        
+        bit4_1 = ((self.imm & 0b11110) >> 1)
+        bit10_5 = ((self.imm & 0b11111100000) >> 5)
+        
+        self.inst = self.opcode | (self.rs1 << 15) | (self.rs2 << 20) | (self.func3 << 12)  | (bit11 << 7) | (bit12 << 31) | (bit4_1 << 8) | (bit10_5 << 25)
+    
+    def randomize(self):
+        self.rs1 = random.randint(0, 31)
+        self.rs2 = random.randint(0, 31)
+    
+        self.func3 = random.choice([0x0, 0x1, 0x4, 0x5, 0x6, 0x7])
+    
+        self.imm = random.randint(0, 4095)
+        
+        self.update_inst()
+
 # TODO: Make all other instructions types
 
 # TODO: Fix this horrible looking code

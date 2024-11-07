@@ -82,6 +82,7 @@ fetch fetch_u (
     .compute_valid(compute_valid),
     .pc(pc),
     .new_pc(new_pc),
+    .branch_flag(branch_flag),
     .clk(clk),
     .rst(rst)
 );
@@ -91,6 +92,7 @@ decode decode_u (
     .inst(inst),
     .compute_req(compute_req),
     .compute_valid(compute_valid),
+    .branch_flag(branch_flag),
     .mem_req(mem_req),
     .mem_we(mem_we),
     .mem_valid(mem_valid),

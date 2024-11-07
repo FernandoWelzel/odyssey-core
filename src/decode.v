@@ -8,10 +8,11 @@ module decode #(
     parameter BYTE_DATA_WIDTH = 4
 )
 (
-    // Decode unit interface
+    // Fetch unit interface
     input  wire [DATA_WIDTH-1:0] inst,
     input  wire compute_req,
     output wire compute_valid,
+    output wire branch_flag,
 
     // LSU interface
     output wire mem_req,
@@ -68,6 +69,8 @@ reg [11:0] pc_jump;
 reg select_pc_reg;
 reg [1:0] rd_select_reg;
 
+reg branch_flag_reg, branch_flag_reg_new;
+
 // Internal assignments
 assign opcode = inst[6:0];
 assign funct3 = inst[14:12];
@@ -104,7 +107,9 @@ assign mem_we = mem_we_reg;
 
 assign direct_store = direct_store_reg;
 
-always @(opcode, funct3, funct7, imm_i, imm_s, less_comp) begin
+assign branch_flag = branch_flag_reg;
+
+always @(*) begin
     // TODO: Fix for pc increase
     select_pc_reg <= 0;
     rd_select_reg <= 0;
@@ -350,11 +355,38 @@ always @(opcode, funct3, funct7, imm_i, imm_s, less_comp) begin
         
         // B instructions
         7'b1100011: begin
-            // case (funct3)
-            // TODO: Logic
-            // First compares values rs1 and rs2 and afterwards
-            // increases the value of the PC
-            // endcase
+            case (funct3)
+                // Branch equal
+                3'b000: begin
+                    branch_flag_reg_new <= equal_comp;
+                end
+                // Branch different
+                3'b001: begin
+                    branch_flag_reg_new <= ~equal_comp;
+                end
+                // Branch less than
+                3'b100: begin
+                    branch_flag_reg_new <= less_comp;
+                end
+                // Branch more or equal
+                3'b101: begin
+                    branch_flag_reg_new <= (equal_comp || ~less_comp);
+                end
+                // Branch less (unsigned)
+                3'b110: begin
+                    // TODO: Fix unsigned
+                    branch_flag_reg_new <= less_comp;
+                end
+                // Branch more or equal (unsigned)
+                3'b111: begin
+                    // TODO: Fix unsigned
+                    branch_flag_reg_new <= (equal_comp || ~less_comp);
+                end
+                // Default
+                default: begin
+                    branch_flag_reg_new <= 1'b0;
+                end
+            endcase
         end
         
     // Default
@@ -371,6 +403,7 @@ localparam S_COMPUTE = 1;
 localparam S_COMPUTE_VALID = 2;
 localparam S_MEM_REQ = 3;
 localparam S_MEM_VALID = 4;
+localparam S_PC_UPDATE = 5;
 
 reg [2:0] c_state, n_state;
 
@@ -397,9 +430,18 @@ always @(*) begin
             if(opcode == 7'b0000011 || opcode == 7'b0000011) begin
                 n_state = S_MEM_REQ;
             end
+            else if(opcode == 7'b1100011 || opcode == 7'b1101111 || opcode == 7'b1100111 || opcode == 7'b0010111) begin
+                n_state = S_PC_UPDATE;
+            end
             else begin
                 n_state = S_COMPUTE_VALID;
             end
+        end
+        S_PC_UPDATE: begin
+            select_pc_reg <= 1'b1;
+            select_imm_reg <= 1'b1;
+            
+            n_state = S_COMPUTE_VALID;
         end
         S_COMPUTE_VALID: begin
             compute_valid_reg_new = 1'b1;
@@ -450,6 +492,7 @@ always @(posedge clk) begin
         c_state <= n_state;
 
         compute_valid_reg <= compute_valid_reg_new;
+        branch_flag_reg <= branch_flag_reg_new;
     end
 end
 

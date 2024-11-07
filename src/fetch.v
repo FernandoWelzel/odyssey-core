@@ -15,6 +15,7 @@ module fetch #(
     output wire [DATA_WIDTH-1:0] inst,
     output wire compute_req,
     input  wire compute_valid,
+    input  wire branch_flag,
     
     // ALU interface
     output wire [DATA_WIDTH-1:0] pc,
@@ -98,9 +99,13 @@ always @(posedge clk) begin
 		c_state <= S_INST_REQ;
     end
     else begin
-        // TODO: Fix to account for jumps in the address    
         if(c_state == S_INST_VALID) begin
-            inst_addr_reg <= inst_addr_reg + 1;
+            if (branch_flag) begin
+                inst_addr_reg <= new_pc;
+            end
+            else begin
+                inst_addr_reg <= inst_addr_reg + 1;
+            end
 
             inst_reg <= inst_data;
         end
