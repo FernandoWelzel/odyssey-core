@@ -5,8 +5,7 @@ class CoreState():
     def __init__(self):
         self.register_file = [0 for _ in range(32)]
         
-        # TODO: Fix PC offset
-        self.pc = -1
+        self.pc = 0
 
     def __eq__(self, another_state):
         for i in range(32):
@@ -53,7 +52,7 @@ class CoreModel():
         self.memory = Memory()
     
     def execute(self, instruction : Instruction):
-        if instruction.type in ["I", "IM"]:
+        if instruction.type in ["I", "IM", "S", "B"]:
             # Sign extension of immediate
             imm = instruction.imm & 0xFFF
             
@@ -192,7 +191,7 @@ class CoreModel():
                 self.state.pc = self.state.pc + 1
 
             # Branch operations
-            case 0b0100011:
+            case 0b1100011:
                 branch = False
 
                 match instruction.func3:
@@ -239,6 +238,10 @@ class CoreModel():
             case 0b0110111:
                 self.register_file[instruction.rd] = (imm << 12)
 
+                self.state.pc += 1
+
             # Add Upper imm
             case 0b0010111:
                 self.register_file[instruction.rd] = self.state.pc + (imm << 12)
+
+                self.state.pc += 1

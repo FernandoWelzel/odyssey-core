@@ -143,7 +143,7 @@ class SInstruction(Instruction):
         self.rs1 = random.randint(0, 31)
         self.rs2 = random.randint(0, 31)
     
-        self.func3 = random.choice([0x0, 0x1, 0x4, 0x5, 0x6, 0x7])
+        self.func3 = random.choice([0x0, 0x1, 0x2])
     
         self.imm = random.randint(0, 4095)
         
@@ -216,7 +216,27 @@ def create_instruction(instruction_bin):
         # IE instruction
         case 0b1110011:
             instruction = IInstruction(0b1110011, (instruction_bin >> 7) & 0b11111, (instruction_bin >> 15) & 0b11111, (instruction_bin >> 20) & 0b111111111111, (instruction_bin >> 12) & 0b111)
-    
+        
+        # S instruction
+        case 0b0100011:
+            imm4_0 = (instruction_bin >> 7) & 0b11111
+            imm11_5 = (instruction_bin >> 24) & 0b1111111
+
+            imm = (imm4_0) | (imm11_5 << 5)
+
+            instruction = SInstruction((instruction_bin >> 15) & 0b11111, (instruction_bin >> 20) & 0b11111, imm, (instruction_bin >> 12) & 0b111)
+            
+        # B instruction
+        case 0b1100011:
+            imm12 = instruction_bin >> 30
+            imm11 = (instruction_bin >> 6) & 0b1 
+            imm4_1 = (instruction_bin >> 7) & 0b1111
+            imm10_5 = (instruction_bin >> 24) & 0b111111
+
+            imm = (imm4_1 << 1) | (imm10_5 << 5) | (imm11 << 11) | (imm12 << 12)
+
+            instruction = BInstruction((instruction_bin >> 15) & 0b11111, (instruction_bin >> 20) & 0b11111, imm, (instruction_bin >> 12) & 0b111)
+   
     # Ilegal instruction
     if instruction == None:
         raise Exception
@@ -240,15 +260,17 @@ def create_random_instruction():
         
         # TODO: Create the code for remaining instructions
         case "S":
-            instruction = RInstruction(0, 0, 0, 0, 0)
+            instruction = SInstruction(0, 0, 0, 0)
         
         case "B":
-            instruction = RInstruction(0, 0, 0, 0, 0)
+            instruction = BInstruction(0, 0, 0, 0)
         
         case "J":
+            # TODO: Substitute instruction
             instruction = RInstruction(0, 0, 0, 0, 0)
         
         case "U":
+            # TODO: Substitute instruction
             instruction = RInstruction(0, 0, 0, 0, 0)
     
     # Randomize internal values

@@ -93,6 +93,7 @@ decode decode_u (
     .compute_req(compute_req),
     .compute_valid(compute_valid),
     .branch_flag(branch_flag),
+    .new_pc(new_pc),
     .mem_req(mem_req),
     .mem_we(mem_we),
     .mem_valid(mem_valid),
@@ -110,6 +111,7 @@ decode decode_u (
     .imm(imm),
     .select_imm(select_imm),
     .select_pc(select_pc),
+    .q(q),
     .clk(clk),
     .rst(rst)
 );

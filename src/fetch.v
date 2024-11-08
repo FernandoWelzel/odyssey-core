@@ -1,7 +1,7 @@
 // Processor fetch unit
 module fetch #(
     parameter DATA_WIDTH = 32,
-    parameter START_ADDR = 32'hFFFFFFFF
+    parameter START_ADDR = 32'h00000000
 )
 (
     // Instruction cache interface
@@ -31,8 +31,9 @@ localparam S_INST_REQ = 0;
 localparam S_INST_VALID = 1;
 localparam S_COMPUTE_REQ = 2;
 localparam S_COMPUTE_VALID = 3;
+localparam S_UPDATE_PC = 4;
 
-reg [1:0] c_state, n_state;
+reg [2:0] c_state, n_state;
 
 // Internal variables
 reg [DATA_WIDTH-1:0] inst_addr_reg;
@@ -81,8 +82,11 @@ always @(*) begin
                 n_state = S_COMPUTE_VALID;
             end
             else begin
-                n_state = S_INST_REQ;
+                n_state = S_UPDATE_PC;
             end
+        end
+        S_UPDATE_PC: begin
+            n_state = S_INST_REQ;
         end
         default: begin
             n_state = S_INST_REQ;
@@ -99,14 +103,15 @@ always @(posedge clk) begin
 		c_state <= S_INST_REQ;
     end
     else begin
-        if(c_state == S_INST_VALID) begin
+        if(c_state == S_UPDATE_PC) begin
             if (branch_flag) begin
                 inst_addr_reg <= new_pc;
             end
             else begin
                 inst_addr_reg <= inst_addr_reg + 1;
             end
-
+        end
+        if(c_state == S_INST_VALID) begin
             inst_reg <= inst_data;
         end
 
@@ -124,5 +129,7 @@ assign inst_req = inst_req_reg;
 assign inst = inst_reg;
 
 assign compute_req = compute_req_reg;
+
+assign pc = inst_addr;
 
 endmodule

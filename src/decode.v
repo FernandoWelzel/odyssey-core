@@ -13,6 +13,7 @@ module decode #(
     input  wire compute_req,
     output wire compute_valid,
     output wire branch_flag,
+    output wire [DATA_WIDTH-1:0] new_pc,
 
     // LSU interface
     output wire mem_req,
@@ -38,6 +39,8 @@ module decode #(
     output wire [DATA_WIDTH-1:0] imm,
     output wire select_imm,
     output wire select_pc,
+
+    input  wire [DATA_WIDTH-1:0] q,
     
     // Global control
     input  wire clk,
@@ -61,10 +64,13 @@ reg [6:0] funct7;
 
 reg [4:0] rd, rs1, rs2;
 
-reg [11:0] imm_s;
 reg [11:0] imm_i;
+reg [11:0] imm_s;
+reg [12:0] imm_b;
+reg [31:0] imm_choice;
 
 reg [11:0] pc_jump;
+reg [DATA_WIDTH-1:0] new_pc_reg;
 
 reg select_pc_reg;
 reg [1:0] rd_select_reg;
@@ -80,8 +86,9 @@ assign rd = inst[11:7];
 assign rs1 = inst[19:15];
 assign rs2 = inst[24:20];
 
-assign imm_s = {inst[31:25], inst[11:7]};
 assign imm_i = {inst[31:20]};
+assign imm_s = {inst[31:25], inst[11:7]};
+assign imm_b = {inst[31], inst[7], inst[30:25], inst[11:8], 1'b0};
 
 // External assignments
 assign addr_rd = rd;
@@ -89,7 +96,7 @@ assign addr_rs1 = rs1;
 assign addr_rs2 = rs2;
 
 // Sign extension of immediate value
-assign imm = (imm_i[11]) ? {20'hFFFFF, imm_i} : {20'h00000, imm_i};
+assign imm = imm_choice;
 
 assign alu_control = alu_control_reg;
 assign select_imm = select_imm_reg;
@@ -109,11 +116,12 @@ assign direct_store = direct_store_reg;
 
 assign branch_flag = branch_flag_reg;
 
-always @(*) begin
-    // TODO: Fix for pc increase
-    select_pc_reg <= 0;
+assign new_pc = new_pc_reg;
+
+always @(opcode) begin
     rd_select_reg <= 0;
-    select_imm_reg <= 1'b0;
+    branch_flag_reg_new <= 1'b0;
+    imm_choice <= 0;
 
     // Calculate instruction
     case (opcode)
@@ -201,8 +209,8 @@ always @(*) begin
 
         // I instructions - Execute
         7'b0010011: begin
-            select_imm_reg <= 1'b1;
-
+            imm_choice <= (imm_i[11]) ? {20'hFFFFF, imm_i} : {20'h00000, imm_i};
+            
             case (funct3)
                 // ADDI
                 3'b000: begin
@@ -284,7 +292,8 @@ always @(*) begin
 
         // I instructions - Load
         7'b0000011: begin
-            select_imm_reg <= 1'b1;
+            imm_choice <= (imm_i[11]) ? {20'hFFFFF, imm_i} : {20'h00000, imm_i};
+
             alu_control_reg <= ADD_SUB_OP;
             mem_we_reg <= 1'b0;
             rd_select_reg <= 2'b10;
@@ -324,6 +333,10 @@ always @(*) begin
 
         // S instructions
         7'b0100011: begin
+            imm_choice <= (imm_s[11]) ? {20'hFFFFF, imm_s} : {20'h00000, imm_s};
+
+            alu_control_reg <= ADD_SUB_OP;
+
             case (funct3)
                 // SB - Store Byte
                 3'b000: begin
@@ -355,6 +368,10 @@ always @(*) begin
         
         // B instructions
         7'b1100011: begin
+            imm_choice <= (imm_b[12]) ? {19'h7FFFF, imm_b} : {19'h00000, imm_b};
+
+            alu_control_reg <= ADD_SUB_OP;
+
             case (funct3)
                 // Branch equal
                 3'b000: begin
@@ -413,6 +430,9 @@ always @(*) begin
     mem_req_reg = 1'b0;
     rf_enable_reg = 1'b0;
 
+    select_pc_reg <= 1'b0;
+    select_imm_reg <= 1'b0;
+
 	case (c_state)
         S_WAIT: begin
             if(compute_req) begin
@@ -423,7 +443,12 @@ always @(*) begin
             end
         end
         S_COMPUTE: begin
-            if(~(opcode == 7'b0000011 || opcode == 7'b1100011 || opcode == 7'b1110011)) begin
+            // Immediate and store conditions
+            if(opcode == 7'b0010011 || opcode == 7'b0000011 || opcode == 7'b0100011) begin
+                select_imm_reg <= 1'b1;
+            end
+
+            if(~(opcode == 7'b0000011 || opcode == 7'b1100011 || opcode == 7'b0100011 || opcode == 7'b1110011)) begin
                 rf_enable_reg = 1'b1;
             end
 
@@ -492,7 +517,13 @@ always @(posedge clk) begin
         c_state <= n_state;
 
         compute_valid_reg <= compute_valid_reg_new;
-        branch_flag_reg <= branch_flag_reg_new;
+
+        if(c_state == S_COMPUTE) begin
+            branch_flag_reg <= branch_flag_reg_new;
+        end
+        else if(c_state == S_PC_UPDATE) begin
+            new_pc_reg <= q;
+        end
     end
 end
 
