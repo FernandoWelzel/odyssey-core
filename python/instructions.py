@@ -190,7 +190,66 @@ class BInstruction(Instruction):
         
         self.update_inst()
 
-# TODO: Make all other instructions types
+class UInstruction(Instruction):
+    def __init__(self, rd : int, imm : int):
+        super().__init__("J")
+        
+        # TODO: Assert size of each of the variables
+        self.rd = rd
+        self.imm = imm
+
+        # Calculate the new instruction
+        self.update_inst()
+    
+    def update_inst(self):
+        # TODO: Assert size of new variables
+        # TODO: Fix horrible looking code
+        
+        self.inst = self.opcode | (self.rd << 7) | (self.imm >> 12)
+    
+    def randomize(self):
+        self.rd = random.randint(0, 31)
+    
+        self.imm = random.randint(0, 1048575)
+        
+        self.update_inst()
+
+class JInstruction(Instruction):
+    def __init__(self, rd : int, imm : int):
+        super().__init__("J")
+        
+        # TODO: Assert size of each of the variables
+        self.rd = rd
+        self.imm = imm
+
+        # Calculate the new instruction
+        self.update_inst()
+    
+    def update_inst(self):
+        # TODO: Assert size of new variables
+        # TODO: Fix horrible looking code
+        if (self.imm & 0x100000) == 0x100000:
+            bit20 = 0b1
+        else:
+            bit20 = 0b0
+        
+        if (self.imm & 0x800) == 0x800:
+            bit11 = 0b1
+        else:
+            bit11 = 0b0
+        
+        bit10_1 = ((self.imm & 0b1111111111) >> 1)
+        bit19_12 = ((self.imm & 0b11111111) >> 12)
+        
+        self.inst = self.opcode | (self.rd << 7) | (bit20 << 31) | (bit11 << 19) | (bit10_1 << 20) | (bit19_12 << 12)
+    
+    def randomize(self):
+        self.rd = random.randint(0, 31)
+    
+        self.imm = random.randint(0, 1048575)
+        
+        self.update_inst()
+
 
 # TODO: Fix this horrible looking code
 def create_instruction(instruction_bin):
@@ -252,8 +311,7 @@ def create_random_instruction():
         
         case "I":
             # TODO: Enable other instructions
-            # sub_type = random.choice(["I", "IM", "IJ", "IE"])
-            sub_type = random.choice(["I", "IM"])
+            sub_type = random.choice(["I", "IM", "IJ", "IE"])
             sub_type_opcode = type_dictionary[sub_type]
 
             instruction = IInstruction(sub_type_opcode, 0, 0, 0, 0)
@@ -266,12 +324,12 @@ def create_random_instruction():
             instruction = BInstruction(0, 0, 0, 0)
         
         case "J":
-            # TODO: Substitute instruction
-            instruction = RInstruction(0, 0, 0, 0, 0)
+            instruction = JInstruction(0, 0)
         
         case "U":
-            # TODO: Substitute instruction
-            instruction = RInstruction(0, 0, 0, 0, 0)
+            sub_type = random.choice(["UL", "UA"])
+
+            instruction = UInstruction(0, 0)
     
     # Randomize internal values
     instruction.randomize()

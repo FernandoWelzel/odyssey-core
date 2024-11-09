@@ -67,6 +67,8 @@ reg [4:0] rd, rs1, rs2;
 reg [11:0] imm_i;
 reg [11:0] imm_s;
 reg [12:0] imm_b;
+reg [20:0] imm_j;
+reg [31:0] imm_u;
 reg [31:0] imm_choice;
 
 reg [11:0] pc_jump;
@@ -89,6 +91,8 @@ assign rs2 = inst[24:20];
 assign imm_i = {inst[31:20]};
 assign imm_s = {inst[31:25], inst[11:7]};
 assign imm_b = {inst[31], inst[7], inst[30:25], inst[11:8], 1'b0};
+assign imm_j = {inst[31], inst[19:12], inst[20], inst[30:21], 1'b0};
+assign imm_u = {inst[31:12], 12'b0};
 
 // External assignments
 assign addr_rd = rd;
@@ -405,6 +409,29 @@ always @(opcode) begin
                 end
             endcase
         end
+
+        // J instructions
+        7'b1101111: begin
+            imm_choice <= (imm_j[20]) ? {11'h7FF, imm_j} : {11'h000, imm_j};
+
+            alu_control_reg <= ADD_SUB_OP;
+        end
+
+        // U instructions
+        7'b0110111: begin
+            imm_choice <= imm_u[20];
+
+            alu_control_reg <= LLS_OP;
+        end
+
+        // U instructions
+        7'b0010111: begin
+            // TODO: Fix double operation problem
+            imm_choice <= imm_u[20];
+
+            alu_control_reg <= LLS_OP;
+        end
+
         
     // Default
     default: begin

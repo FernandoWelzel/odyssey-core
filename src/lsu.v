@@ -31,9 +31,10 @@ module lsu #(
 );
 
 // State machine variables
-localparam S_WAIT = 0;
-localparam S_MEM_REQ = 1;
-localparam S_DATA_VALID = 2;
+localparam S_RESET = 0;
+localparam S_WAIT = 1;
+localparam S_MEM_REQ = 2;
+localparam S_DATA_VALID = 3;
 
 reg [1:0] c_state, n_state;
 
@@ -59,6 +60,9 @@ endgenerate
 // Combinatorial
 always @(*) begin
 	case (c_state)
+        S_RESET: begin
+            n_state <= S_WAIT;
+        end
         S_WAIT: begin
             if(mem_req) begin
                 n_state <= S_MEM_REQ;
@@ -91,10 +95,10 @@ end
 
 always @(posedge clk) begin
     if(rst) begin
-		c_state <= S_WAIT;
+		c_state <= S_RESET;
     end
     else begin
-        if(c_state == S_WAIT) begin
+        if(c_state == S_MEM_REQ) begin
             data_addr_reg <= mem_addr;
         end
 
