@@ -1,3 +1,5 @@
+# TODO: Create Python library to deal with binary conversions
+
 import random
 import copy
 
@@ -205,7 +207,7 @@ class UInstruction(Instruction):
         # TODO: Assert size of new variables
         # TODO: Fix horrible looking code
         
-        self.inst = self.opcode | (self.rd << 7) | (self.imm >> 12)
+        self.inst = self.opcode | (self.rd << 7) | (self.imm << 12)
     
     def randomize(self):
         self.rd = random.randint(0, 31)
@@ -295,7 +297,31 @@ def create_instruction(instruction_bin):
             imm = (imm4_1 << 1) | (imm10_5 << 5) | (imm11 << 11) | (imm12 << 12)
 
             instruction = BInstruction((instruction_bin >> 15) & 0b11111, (instruction_bin >> 20) & 0b11111, imm, (instruction_bin >> 12) & 0b111)
-   
+
+        
+        # J instruction
+        case 0b1101111:
+            imm20 = instruction_bin >> 30
+            imm10_1 = (instruction_bin >> 20) & 0b1111111111 
+            imm11 = (instruction_bin >> 19) & 0b1
+            imm19_12 = (instruction_bin >> 11) & 0b11111111
+
+            imm = (imm10_1 << 1) | (imm20 << 20) | (imm11 << 11) | (imm19_12 << 12)
+
+            instruction = JInstruction((instruction_bin >> 7) & 0b11111, imm)
+
+        # U instruction
+        case 0b0110111:
+            imm = (instruction_bin & 0xFFFFF000)
+
+            instruction = UInstruction((instruction_bin >> 7) & 0b11111, imm)
+
+        # U instruction
+        case 0b0010111:
+            imm = (instruction_bin & 0xFFFFF000)
+
+            instruction = UInstruction((instruction_bin >> 7) & 0b11111, imm)
+    
     # Ilegal instruction
     if instruction == None:
         raise Exception
@@ -310,13 +336,11 @@ def create_random_instruction():
             instruction = RInstruction(0, 0, 0, 0, 0)
         
         case "I":
-            # TODO: Enable other instructions
             sub_type = random.choice(["I", "IM", "IJ", "IE"])
             sub_type_opcode = type_dictionary[sub_type]
 
             instruction = IInstruction(sub_type_opcode, 0, 0, 0, 0)
-        
-        # TODO: Create the code for remaining instructions
+
         case "S":
             instruction = SInstruction(0, 0, 0, 0)
         

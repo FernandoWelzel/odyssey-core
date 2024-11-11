@@ -155,7 +155,9 @@ lsu lsu_u (
     .rdata(rdata),
     .wdata(wdata),
     .data_we(data_we),
-    .byte_enable(byte_enable)
+    .byte_enable(byte_enable),
+    .clk(clk),
+    .rst(rst)
 );
 
 assign a = (select_pc) ? pc : data_rs1;

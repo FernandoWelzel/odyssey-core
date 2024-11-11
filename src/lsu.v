@@ -98,7 +98,7 @@ always @(posedge clk) begin
 		c_state <= S_RESET;
     end
     else begin
-        if(c_state == S_MEM_REQ) begin
+        if(c_state == S_WAIT) begin
             data_addr_reg <= mem_addr;
         end
 

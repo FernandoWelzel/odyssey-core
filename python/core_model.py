@@ -52,12 +52,36 @@ class CoreModel():
         self.memory = Memory()
     
     def execute(self, instruction : Instruction):
-        if instruction.type in ["I", "IM", "S", "B"]:
+        # TODO: In binary number library, add a function for sign extending based on the number of bits
+        if instruction.type in ["I", "IM", "IJ", "IE", "S"]:
             # Sign extension of immediate
-            imm = instruction.imm & 0xFFF
+            sign_bit = instruction.imm & 0x800
             
-            if imm & 0x800:
-                imm = imm | 0xFFFFF000
+            if sign_bit & 0x800:
+                imm = instruction.imm | 0xFFFFF000
+            else:
+                imm = instruction.imm
+
+        if instruction.type in ["B"]:
+            # Sign extension of immediate
+            sign_bit = instruction.imm & 0x1000
+            
+            if sign_bit & 0x1000:
+                imm = instruction.imm | 0xFFFFE000
+            else:
+                imm = instruction.imm
+
+        if instruction.type in ["UA", "UL"]:
+            imm = instruction.imm
+        
+        if instruction.type in ["J"]:
+            # Sign extension of immediate
+            sign_bit = instruction.imm & 0x10000
+            
+            if sign_bit & 0x10000:
+                imm = instruction.imm | 0xFFFE0000
+            else:
+                imm = instruction.imm
 
         # Execute basd on opcode
         match instruction.opcode:

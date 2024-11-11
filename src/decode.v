@@ -122,7 +122,7 @@ assign branch_flag = branch_flag_reg;
 
 assign new_pc = new_pc_reg;
 
-always @(opcode) begin
+always @(*) begin
     rd_select_reg <= 0;
     branch_flag_reg_new <= 1'b0;
     imm_choice <= 0;
