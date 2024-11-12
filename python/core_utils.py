@@ -51,7 +51,8 @@ class CoreBfm(metaclass=utility_classes.Singleton):
         self.dut.data_valid.value = 0
         self.dut.rdata.value = 0
         self.dut.rst.value = 1
-        await FallingEdge(self.dut.clk)
+        for _ in range(10):
+            await FallingEdge(self.dut.clk)
         self.dut.rst.value = 0
         await FallingEdge(self.dut.clk)
 
@@ -85,14 +86,14 @@ class CoreBfm(metaclass=utility_classes.Singleton):
                 self.dut.data_valid.value = 0
                 
     async def cmd_mon_bfm(self):
-        prev_request = 0
+        prev_valid = 0
         while True:
             await FallingEdge(self.dut.clk)
-            request = get_int(self.dut.inst_req)
-            if request == 1 and prev_request == 0:
+            valid = get_int(self.dut.inst_valid)
+            if valid == 1 and prev_valid == 0:
                 self.cmd_mon_queue.put_nowait(self.dut.inst_data.value)
 
-            prev_request = request
+            prev_valid = valid
 
     async def result_mon_bfm(self):
         prev_request = 0
@@ -105,7 +106,10 @@ class CoreBfm(metaclass=utility_classes.Singleton):
             await FallingEdge(self.dut.clk)
             request = get_int(self.dut.inst_req)
 
-            if request == 0 and prev_request == 1:
+            if request == 1 and prev_request == 0:
+                # TODO: Remove this (used to get the next PC value)
+                await FallingEdge(self.dut.clk)
+
                 # Getting registers from internal values
                 state.register_file = self.dut.dut.register_file_u.registers.value
                 state.pc = self.dut.inst_addr
@@ -117,7 +121,7 @@ class CoreBfm(metaclass=utility_classes.Singleton):
 
                 count = 0
             
-            elif count == 100:
+            elif count == 1000:
                 raise Exception
 
             else:

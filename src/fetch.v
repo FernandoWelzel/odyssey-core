@@ -27,11 +27,12 @@ module fetch #(
 );
 
 // State machine variables
-localparam S_INST_REQ = 0;
-localparam S_INST_VALID = 1;
-localparam S_COMPUTE_REQ = 2;
-localparam S_COMPUTE_VALID = 3;
-localparam S_UPDATE_PC = 4;
+localparam S_RESET = 0;
+localparam S_INST_REQ = 1;
+localparam S_INST_VALID = 2;
+localparam S_COMPUTE_REQ = 3;
+localparam S_COMPUTE_VALID = 4;
+localparam S_UPDATE_PC = 5;
 
 reg [2:0] c_state, n_state;
 
@@ -49,6 +50,11 @@ always @(*) begin
     compute_req_reg_new = 1'b0;
 
 	case (c_state)
+        S_RESET: begin
+            inst_req_reg = 1'b0;
+
+            n_state = S_INST_REQ;
+        end
         S_INST_REQ: begin
             inst_req_reg = 1'b1;
 
@@ -100,7 +106,7 @@ always @(posedge clk) begin
         // Initialize first memory addr
         inst_addr_reg <= START_ADDR;
 
-		c_state <= S_INST_REQ;
+		c_state <= S_RESET;
     end
     else begin
         if(c_state == S_UPDATE_PC) begin

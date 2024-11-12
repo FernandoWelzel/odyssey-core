@@ -7,6 +7,11 @@ class CoreState():
         
         self.pc = 0
 
+    def reset(self):
+        self.register_file = [0 for _ in range(32)]
+        
+        self.pc = 0
+
     def __eq__(self, another_state):
         for i in range(32):
             if(int(self.register_file[i]) != int(another_state.register_file[i])):
@@ -35,6 +40,9 @@ class Memory():
     def __init__(self):
         self.memory = {}
     
+    def reset(self):
+        self.memory = {}
+
     def read(self, address):
         if address in self.memory.keys():
             return self.memory[address]
@@ -50,6 +58,10 @@ class CoreModel():
     def __init__(self):
         self.state = CoreState()
         self.memory = Memory()
+    
+    def reset(self):
+        self.state.reset()
+        self.memory.reset()
     
     def execute(self, instruction : Instruction):
         # TODO: In binary number library, add a function for sign extending based on the number of bits
