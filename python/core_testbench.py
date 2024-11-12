@@ -1,23 +1,18 @@
 from cocotb.triggers import Join, Combine
 from pyuvm import *
+import pyuvm
 import random
 import cocotb
 from cocotb.triggers import FallingEdge
-import pyuvm
 import sys
 from pathlib import Path
 
 sys.path.append(str(Path("..").resolve()))
 
-from instructions import Instruction, RInstruction, IInstruction, SInstruction, BInstruction, JInstruction, UInstruction
-from instructions import  create_instruction, create_random_instruction
+from instructions import create_instruction, create_random_instruction
 from core_utils import CoreBfm
 from core_model import CoreState, CoreModel, diff_state
-
-import numpy as np
-
-# Global variables
-result_list = []
+from core_coverage import Coverage
 
 # Sequence classes
 class InstSeqItem(uvm_sequence_item):
@@ -65,59 +60,6 @@ class Driver(uvm_driver):
             # TODO: Fix time period for each instruction
             for _ in range(20):
                 await FallingEdge(cocotb.top.clk)
-
-class Coverage(uvm_subscriber):
-    def end_of_elaboration_phase(self):
-        dtype = [('condition', bool), ('instruction', object)]
-        self.cvg = []
-
-    def write(self, value):
-        self.cvg.append(value)
-
-    def report_phase(self):
-        try:
-            disable_errors = ConfigDB().get(
-                self, "", "DISABLE_COVERAGE_ERRORS")
-        except UVMConfigItemNotFound:
-            disable_errors = False
-        if not disable_errors:
-            # Initialize counters for each instruction type
-            instructions_count = [0, 0, 0, 0, 0, 0]       # Total counts: R, I, S, B, J, U
-            instructions_true_count = [0, 0, 0, 0, 0, 0]  # True counts: R, I, S, B, J, U
-
-            # Define a function to get the index based on the instruction type
-            def get_instruction_index(instruction):
-                if isinstance(instruction, RInstruction):
-                    return 0  # R type
-                elif isinstance(instruction, IInstruction):
-                    return 1  # I type
-                elif isinstance(instruction, SInstruction):
-                    return 2  # S type
-                elif isinstance(instruction, BInstruction):
-                    return 3  # B type
-                elif isinstance(instruction, JInstruction):
-                    return 4  # J type
-                elif isinstance(instruction, UInstruction):
-                    return 5  # U type
-                else:
-                    return None
-
-            # Count instructions and update counters
-            for condition, instruction in self.cvg:
-                index = get_instruction_index(instruction)
-                if index is not None:
-                    instructions_count[index] += 1
-                    if condition:
-                        instructions_true_count[index] += 1
-
-            # Log coverage report
-            self.logger.info("Coverage report (passed/total):")
-            self.logger.info(f"    R - {instructions_true_count[0]}/{instructions_count[0]}")
-            self.logger.info(f"    I - {instructions_true_count[1]}/{instructions_count[1]}")
-            self.logger.info(f"    S - {instructions_true_count[2]}/{instructions_count[2]}")
-            self.logger.info(f"    B - {instructions_true_count[3]}/{instructions_count[3]}")
-            self.logger.info(f"    J - {instructions_true_count[4]}/{instructions_count[4]}")
-            self.logger.info(f"    U - {instructions_true_count[5]}/{instructions_count[5]}")
 
 class Scoreboard(uvm_component):
     def build_phase(self):

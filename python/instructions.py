@@ -17,9 +17,38 @@ type_dictionary = {
     "IE" : 0b1110011
 }
 
+# Correspondance of funct3 and func7 with name
+name_dictionary = {
+    "R"  : {
+        0x0: { 0x00: "ADD", 0x20: "SUB" }, 0x1: { 0x00: "SLL" }, 0x2: { 0x00: "SLT" }, 0x3: { 0x00: "SLTU" },
+        0x4: { 0x00: "XOR" }, 0x5: { 0x00: "SRL", 0x20: "SRA" }, 0x6: { 0x00: "OR" }, 0x7: { 0x00: "AND" }
+    },
+    "I"  : {
+        0x0 : "ADDI", 0x1 : "SLLI", 0x2 : "SLTI", 0x3 : "SLTIU", 0x4 : "XORI", 0x5 : "SRLI/SRLA",
+        0x6 : "ORI", 0x7 : "ANDI"
+    },
+    "IM" : {
+        0x0 : "LB", 0x1 : "LH", 0x2 : "LW", 0x4 : "LBU", 0x5 : "LHU"
+    },
+    "S"  : {
+        0x0 : "SB", 0x1 : "SH", 0x2 : "SW"
+    },
+    "B"  : {
+        0x0 : "BEQ", 0x1 : "BNE", 0x4 : "BLT", 0x5 : "BGE", 0x6 : "BLTU", 0x7 : "BGEU"
+    },
+    "J"  : "JAL",
+    "IJ" : "JALR",
+    "UL" : "LUI",
+    "UA" : "AUIPC",
+    "IE" : {
+        0x0 : "ECALL",
+        0x1 : "EBREAK"
+    }
+}
+
 # Base instruction class
 class Instruction():
-    def __init__(self, type : str):
+    def __init__(self, type : str, name : str = None):
         # Initializes opcode
         if type in type_dictionary:
             self.opcode = type_dictionary[type]
@@ -27,15 +56,17 @@ class Instruction():
             raise Exception
         
         self.type = type
+        self.name = name
+
         self.inst = 0
 
     def __str__(self) -> str:
         return f"{'0x{0:08X}'.format(self.inst)}"
     
-    def update_inst():
+    def update_inst(self):
         ...
 
-    def randomize():
+    def randomize(self):
         ...
 
 class RInstruction(Instruction):
@@ -55,7 +86,16 @@ class RInstruction(Instruction):
     def update_inst(self):
         # TODO: Assert size of new variables
         self.inst = self.opcode | (self.rd << 7) | (self.rs1 << 15) | (self.rs2 << 20) | (self.func3 << 12) | (self.func7 << 25)
-    
+
+        # Get name of instruction
+        if self.func3 in name_dictionary["R"].keys():
+            if self.func7 in name_dictionary["R"][self.func3].keys():
+                self.name = name_dictionary["R"][self.func3][self.func7]
+            else:
+                raise Exception
+        else:
+            raise Exception
+
     def randomize(self):
         self.rd = random.randint(0, 31)
         self.rs1 = random.randint(0, 31)
@@ -95,7 +135,27 @@ class IInstruction(Instruction):
     def update_inst(self):
         # TODO: Assert size of new variables
         self.inst = self.opcode | (self.rd << 7) | (self.rs1 << 15) | (self.imm << 20) | (self.func3 << 12)
-    
+
+        # Get name of instruction
+        match self.type:
+            case "I":
+                if self.func3 in name_dictionary[self.type].keys():
+                    self.name = name_dictionary[self.type][self.func3]
+                else:
+                    raise Exception
+            case "IM":
+                if self.func3 in name_dictionary[self.type].keys():
+                    self.name = name_dictionary[self.type][self.func3]
+                else:
+                    raise Exception
+            case "IJ":
+                self.name = name_dictionary["IJ"]
+            case "IE":
+                if self.imm in name_dictionary["IE"].keys():
+                    self.name = name_dictionary["IE"][self.imm]
+                else:
+                    raise Exception
+
     def randomize(self):
         self.rd = random.randint(0, 31)
         self.rs1 = random.randint(0, 31)
@@ -114,6 +174,8 @@ class IInstruction(Instruction):
         
         if self.type == "I" and self.func3 in [0x1, 0x5]:
             self.imm = random.randint(0, 31)
+        elif self.type == "IE":
+            self.imm = random.randint(0, 1)
         else:
             self.imm = random.randint(0, 4095)
         
@@ -134,12 +196,17 @@ class SInstruction(Instruction):
 
     def update_inst(self):
         # TODO: Assert size of new variables
-        # TODO: Fix horrible looking code
-        
+        # TODO: Fix horrible looking code        
         bit4_0 = (self.imm & 0b11111)
         bit11_5 = ((self.imm & 0b111111100000) >> 5)
         
         self.inst = self.opcode | (self.rs1 << 15) | (self.rs2 << 20) | (self.func3 << 12)  | (bit4_0 << 7) | (bit11_5 << 25)
+
+        # Get name of instruction
+        if self.func3 in name_dictionary["S"].keys():
+            self.name = name_dictionary["S"][self.func3]
+        else:
+            raise Exception
     
     def randomize(self):
         self.rs1 = random.randint(0, 31)
@@ -181,6 +248,12 @@ class BInstruction(Instruction):
         bit10_5 = ((self.imm & 0b11111100000) >> 5)
         
         self.inst = self.opcode | (self.rs1 << 15) | (self.rs2 << 20) | (self.func3 << 12)  | (bit11 << 7) | (bit12 << 31) | (bit4_1 << 8) | (bit10_5 << 25)
+
+        # Get name of instruction
+        if self.func3 in name_dictionary["B"].keys():
+            self.name = name_dictionary["B"][self.func3]
+        else:
+            raise Exception
     
     def randomize(self):
         self.rs1 = random.randint(0, 31)
@@ -208,7 +281,10 @@ class UInstruction(Instruction):
         # TODO: Fix horrible looking code
         
         self.inst = self.opcode | (self.rd << 7) | (self.imm << 12)
-    
+
+        # Get name of instruction
+        self.name = name_dictionary[self.type]
+
     def randomize(self):
         self.rd = random.randint(0, 31)
     
@@ -244,6 +320,9 @@ class JInstruction(Instruction):
         bit19_12 = ((self.imm & 0b11111111) >> 12)
         
         self.inst = self.opcode | (self.rd << 7) | (bit20 << 31) | (bit11 << 19) | (bit10_1 << 20) | (bit19_12 << 12)
+
+        # Get name of instruction
+        self.name = name_dictionary[self.type]
     
     def randomize(self):
         self.rd = random.randint(0, 31)
