@@ -20,7 +20,7 @@ class Coverage(uvm_subscriber):
             # Initialize counters for each instruction type
             instructions_count = {
                 "R"  : { "ADD" : 0, "SUB" : 0, "XOR" : 0, "OR" : 0, "AND" : 0, "SLL" : 0, "SRL" : 0, "SRA" : 0, "SLT" : 0, "SLTU" : 0 },
-                "I"  : { "ADDI" : 0, "XORI" : 0, "ORI" : 0, "ANDI" : 0, "SLLI" : 0, "SRLI" : 0, "SRAI" : 0, "SLTI" : 0, "SLTIU" : 0 },
+                "I"  : { "ADDI" : 0, "XORI" : 0, "ORI" : 0, "ANDI" : 0, "SLLI" : 0, "SRLI/SRLA" : 0, "SRAI" : 0, "SLTI" : 0, "SLTIU" : 0 },
                 "IM" : { "LB" : 0, "LH" : 0, "LW" : 0, "LBU" : 0, "LHU" : 0 },
                 "S"  : { "SB" : 0, "SH" : 0, "SW" : 0 },
                 "B"  : { "BEQ" : 0, "BNE" : 0, "BLT" : 0, "BGE" : 0, "BLTU" : 0, "BGEU" : 0 },
@@ -32,7 +32,7 @@ class Coverage(uvm_subscriber):
             }
             instructions_true_count = {
                 "R"  : { "ADD" : 0, "SUB" : 0, "XOR" : 0, "OR" : 0, "AND" : 0, "SLL" : 0, "SRL" : 0, "SRA" : 0, "SLT" : 0, "SLTU" : 0 },
-                "I"  : { "ADDI" : 0, "XORI" : 0, "ORI" : 0, "ANDI" : 0, "SLLI" : 0, "SRLI" : 0, "SRAI" : 0, "SLTI" : 0, "SLTIU" : 0 },
+                "I"  : { "ADDI" : 0, "XORI" : 0, "ORI" : 0, "ANDI" : 0, "SLLI" : 0, "SRLI/SRLA" : 0, "SRAI" : 0, "SLTI" : 0, "SLTIU" : 0 },
                 "IM" : { "LB" : 0, "LH" : 0, "LW" : 0, "LBU" : 0, "LHU" : 0 },
                 "S"  : { "SB" : 0, "SH" : 0, "SW" : 0 },
                 "B"  : { "BEQ" : 0, "BNE" : 0, "BLT" : 0, "BGE" : 0, "BLTU" : 0, "BGEU" : 0 },

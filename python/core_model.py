@@ -272,12 +272,12 @@ class CoreModel():
 
             # Load Upper imm
             case 0b0110111:
-                self.register_file[instruction.rd] = (imm << 12)
+                self.state.register_file[instruction.rd] = (imm << 12)
 
                 self.state.pc += 1
 
             # Add Upper imm
             case 0b0010111:
-                self.register_file[instruction.rd] = self.state.pc + (imm << 12)
+                self.state.register_file[instruction.rd] = self.state.pc + (imm << 12)
 
                 self.state.pc += 1

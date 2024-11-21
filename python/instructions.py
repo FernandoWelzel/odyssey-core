@@ -1,5 +1,5 @@
 # TODO: Create Python library to deal with binary conversions
-
+import numpy as np
 import random
 import copy
 
@@ -61,7 +61,7 @@ class Instruction():
         self.inst = 0
 
     def __str__(self) -> str:
-        return f"{'0x{0:08X}'.format(self.inst)}"
+        return f"{self.type} - {self.name} - {'0x{0:08X}'.format(self.inst)}"
     
     def update_inst(self):
         ...
@@ -155,6 +155,8 @@ class IInstruction(Instruction):
                     self.name = name_dictionary["IE"][self.imm]
                 else:
                     raise Exception
+            case _:
+                raise Exception
 
     def randomize(self):
         self.rd = random.randint(0, 31)
@@ -266,8 +268,14 @@ class BInstruction(Instruction):
         self.update_inst()
 
 class UInstruction(Instruction):
-    def __init__(self, rd : int, imm : int):
-        super().__init__("J")
+    def __init__(self, opcode, rd : int, imm : int):
+        match opcode:
+            case 0b0110111:
+                super().__init__("UL")
+            case 0b0010111:
+                super().__init__("UA")
+            case _:
+                raise Exception
         
         # TODO: Assert size of each of the variables
         self.rd = rd
@@ -377,7 +385,6 @@ def create_instruction(instruction_bin):
 
             instruction = BInstruction((instruction_bin >> 15) & 0b11111, (instruction_bin >> 20) & 0b11111, imm, (instruction_bin >> 12) & 0b111)
 
-        
         # J instruction
         case 0b1101111:
             imm20 = instruction_bin >> 30
@@ -391,16 +398,16 @@ def create_instruction(instruction_bin):
 
         # U instruction
         case 0b0110111:
-            imm = (instruction_bin & 0xFFFFF000)
+            imm = ((instruction_bin & 0xFFFFF000) >> 12)
 
-            instruction = UInstruction((instruction_bin >> 7) & 0b11111, imm)
+            instruction = UInstruction(0b0110111, (instruction_bin >> 7) & 0b11111, imm)
 
         # U instruction
         case 0b0010111:
-            imm = (instruction_bin & 0xFFFFF000)
+            imm = ((instruction_bin & 0xFFFFF000) >> 12)
 
-            instruction = UInstruction((instruction_bin >> 7) & 0b11111, imm)
-    
+            instruction = UInstruction(0b0010111, (instruction_bin >> 7) & 0b11111, imm)
+
     # Ilegal instruction
     if instruction == None:
         raise Exception
@@ -409,13 +416,16 @@ def create_instruction(instruction_bin):
 
 # Create completly random instruction
 def create_random_instruction():
+    choice = np.random.choice(["R", "I", "S", "B", "J", "U"], p=[0.5, 0.5, 0, 0, 0, 0])
+
     # Random instruction type
-    match random.choice(["R", "I", "S", "B", "J", "U"]):
+    match choice:
         case "R":
             instruction = RInstruction(0, 0, 0, 0, 0)
         
         case "I":
-            sub_type = random.choice(["I", "IM", "IJ", "IE"])
+            sub_type = np.random.choice(["I", "IM", "IJ", "IE"], p=[0.5, 0.3, 0.1, 0.1])
+
             sub_type_opcode = type_dictionary[sub_type]
 
             instruction = IInstruction(sub_type_opcode, 0, 0, 0, 0)
@@ -430,9 +440,10 @@ def create_random_instruction():
             instruction = JInstruction(0, 0)
         
         case "U":
-            sub_type = random.choice(["UL", "UA"])
+            sub_type = np.random.choice(["UL", "UA"], p=[0.5, 0.5])
+            sub_type_opcode = type_dictionary[sub_type]
 
-            instruction = UInstruction(0, 0)
+            instruction = UInstruction(sub_type_opcode, 0, 0)
     
     # Randomize internal values
     instruction.randomize()

@@ -33,6 +33,9 @@ class CoreBfm(metaclass=utility_classes.Singleton):
         self.cmd_mon_queue = Queue(maxsize=0)
         self.result_mon_queue = Queue(maxsize=0)
 
+        self.request = 0
+        self.prev_request = 0
+
     async def send_instruction(self, instruction : Instruction):
         await self.driver_queue.put(instruction)
 
@@ -86,30 +89,30 @@ class CoreBfm(metaclass=utility_classes.Singleton):
                 self.dut.data_valid.value = 0
                 
     async def cmd_mon_bfm(self):
-        prev_valid = 0
+        self.prev_valid = 0
         while True:
             await FallingEdge(self.dut.clk)
-            valid = get_int(self.dut.inst_valid)
-            if valid == 1 and prev_valid == 0:
+            self.valid = get_int(self.dut.inst_valid)
+            if self.valid == 1 and self.prev_valid == 0:
+                # print(f"Got monitor at time {get_sim_time()}")
                 self.cmd_mon_queue.put_nowait(self.dut.inst_data.value)
 
-            prev_valid = valid
+            self.prev_valid = self.valid
 
     async def result_mon_bfm(self):
-        prev_request = 0
         count = 0
+
+        # TODO: Remove this variables
+        self.skip_first = True
 
         # Initializes state
         state = CoreState()
 
         while True:
             await FallingEdge(self.dut.clk)
-            request = get_int(self.dut.inst_req)
+            self.request = get_int(self.dut.inst_req)
 
-            if request == 1 and prev_request == 0:
-                # TODO: Remove this (used to get the next PC value)
-                await FallingEdge(self.dut.clk)
-
+            if self.request == 1 and self.prev_request == 0:
                 # Getting registers from internal values
                 state.register_file = self.dut.dut.register_file_u.registers.value
                 state.pc = self.dut.inst_addr
@@ -117,18 +120,26 @@ class CoreBfm(metaclass=utility_classes.Singleton):
                 # Store as int values
                 state.to_int()
 
-                self.result_mon_queue.put_nowait(copy.deepcopy(state))
+                # Skip the first result 
+                if self.skip_first:
+                    # print(f"request {self.request}, prev_request {self.prev_request}")
+                    # print(f"Got result at time {get_sim_time()}")
 
+                    self.result_mon_queue.put_nowait(copy.deepcopy(state))
+                    self.skip_first = False
+                else:
+                    self.skip_first = True
+                
                 count = 0
             
-            elif count == 1000:
+            elif count == 10000:
                 raise Exception
 
             else:
                 # Increases count for number of unused clocks
                 count += 1
-
-            prev_request = request
+            
+            self.prev_request = self.request
 
     def start_bfm(self):
         cocotb.start_soon(self.driver_bfm())

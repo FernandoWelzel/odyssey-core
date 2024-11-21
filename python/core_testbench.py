@@ -83,6 +83,7 @@ class Scoreboard(uvm_component):
     def check_phase(self):
         passed = True
         ignore_first = True
+        previous_instruction = 0
 
         try:
             self.errors = ConfigDB().get(self, "", "CREATE_ERRORS")
@@ -95,7 +96,7 @@ class Scoreboard(uvm_component):
 
             if not cmd_success:
                 self.logger.critical(f"result had no command")
-            elif not instruction == 0:
+            elif not instruction == 0 and not instruction == previous_instruction:
                 python_inst = create_instruction(instruction)
 
                 # TODO: Stop reseting model before each iteration
@@ -113,10 +114,12 @@ class Scoreboard(uvm_component):
                     passed = False
 
                     # Print difference between states
-                    # self.logger.debug(f"FAILED (preditecte/actual): {diff_state(predicted_state, actual_state)}")
+                    # self.logger.debug(f"FAILED (preditected/actual): {diff_state(predicted_state, actual_state)}")
 
                 # Writing metrics for coverage
                 self.ap.write((passed, python_inst))
+
+            previous_instruction = instruction
 
 class Monitor(uvm_component):
     def __init__(self, name, parent, method_name):
@@ -162,7 +165,7 @@ class CoreAllTest(uvm_test):
     async def run_phase(self):
         self.raise_objection()
     
-        for _ in range(100):
+        for _ in range(250):
             # Apply sequence
             self.test_all = TestAllSeq.create("test_all")
             await self.test_all.start()
