@@ -43,13 +43,26 @@ class Coverage(uvm_subscriber):
                 "IE" : { "ECALL" : 0, "EBREAK" : 0}
             }
 
+            total_instruction_true_count = 0
+            total_instruction_count = 0
+
+            complete_error_log = ""
+
             # Count instructions and update counters
-            for condition, instruction in self.cvg:
+            for condition, instruction, error_log in self.cvg:
                 instructions_count[instruction.type][instruction.name] += 1
 
                 if condition:
                     instructions_true_count[instruction.type][instruction.name] += 1
+                else:
+                    complete_error_log += f"{error_log}\n\n"
             
+            # Print error log to output file
+            with open("error.txt", "w") as f:
+                f.write(complete_error_log)
+
+                self.logger.info("Written errors to file 'errors.txt'")
+
             formated_list = []
 
             # Print log for every instruction type
@@ -62,11 +75,33 @@ class Coverage(uvm_subscriber):
                         instructions_count[inst_type][name],
                         instructions_true_count[inst_type][name]/instructions_count[inst_type][name]*100 if instructions_count[inst_type][name] != 0 else 0
                     ])
+                    
+                    total_instruction_true_count += instructions_true_count[inst_type][name]
+                    total_instruction_count += instructions_count[inst_type][name]
                 
                 # Print line division
                 formated_list.append(SEPARATING_LINE)
+            
+            # Added total report
+            formated_list.append([
+                "TOTAL",
+                "-",
+                total_instruction_true_count,
+                total_instruction_count,
+                total_instruction_true_count/total_instruction_count*100 if total_instruction_count != 0 else 0
+            ])
 
             # Log coverage report with padded strings
-            self.logger.info("Coverage report (passed/total):")
-        
-            print(tabulate(formated_list, headers=["Inst", "FMT", "Correct", "Total", "Ratio (%)"], tablefmt="grid"))
+            # TODO: Fix line bigger than 200 characters
+            self.logger.info(f"Coverage report (passed/total): {total_instruction_true_count}/{total_instruction_count} = {total_instruction_true_count/total_instruction_count*100 if total_instruction_count != 0 else 0} %")
+
+            # Prepare table
+            table = tabulate(formated_list, headers=["Inst", "FMT", "Correct", "Total", "Ratio (%)"], tablefmt="simple")
+
+            # Write the table to a text file
+            with open("results.txt", "w") as f:
+                f.write(table)
+
+                self.logger.info("Written complete coverage results to file 'results.txt'")
+
+

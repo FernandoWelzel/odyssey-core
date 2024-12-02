@@ -93,6 +93,9 @@ class Scoreboard(uvm_component):
 
             cmd_success, instruction = self.cmd_get_port.try_get()
 
+            # Initializing error log for each instruction
+            error_log = ""
+
             if not cmd_success:
                 self.logger.critical(f"result had no command")
             elif not instruction == 0 and not instruction == previous_instruction:
@@ -111,14 +114,13 @@ class Scoreboard(uvm_component):
 
                 else:
                     passed = False
-
-                    # Print difference between states
-                    # self.logger.info(f"Instruction {'0x{0:08X}'.format(int(instruction))} FAILED : {python_inst}")
                     
-                    diff_state(predicted_state, actual_state)
+                    # Adding instruction information into error log
+                    error_log += f"{python_inst}\n"
+                    error_log += diff_state(predicted_state, actual_state)
 
                 # Writing metrics for coverage
-                self.ap.write((passed, python_inst))
+                self.ap.write((passed, python_inst, error_log))
 
             previous_instruction = instruction
 

@@ -29,12 +29,16 @@ class CoreState():
         self.pc = int(self.pc)
 
 def diff_state(state_a : CoreState, state_b : CoreState):
+    return_string = ""
+
     for i in range(32):
         if state_a.register_file[i] != state_b.register_file[i]:
-            print(f"Register file [{i}]: {state_a.register_file[i]} != {state_b.register_file[i]}")
+            return_string += f"Register file [{i}]: {state_a.register_file[i]} != {state_b.register_file[i]}\n"
     
     if state_a.pc != state_b.pc:
-            print(f"Pointer counter: {state_a.pc} != {state_b.pc}")
+            return_string += f"Pointer counter: {state_a.pc} != {state_b.pc}"
+    
+    return return_string
 
 class Memory():
     def __init__(self):
