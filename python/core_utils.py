@@ -3,7 +3,6 @@ from cocotb.triggers import FallingEdge
 from cocotb.queue import QueueEmpty, Queue
 from cocotb.log import get_sim_time
 
-import enum
 import logging
 
 from pyuvm import utility_classes
@@ -100,10 +99,9 @@ class CoreBfm(metaclass=utility_classes.Singleton):
             self.prev_valid = self.valid
 
     async def result_mon_bfm(self):
-        count = 0
-
-        # TODO: Remove this variables
-        self.skip_first = True
+        count = 0        
+        self.inst_addr = 0
+        self.prev_inst_addr = 0
 
         # Initializes state
         state = CoreState()
@@ -111,8 +109,9 @@ class CoreBfm(metaclass=utility_classes.Singleton):
         while True:
             await FallingEdge(self.dut.clk)
             self.request = get_int(self.dut.inst_req)
+            self.inst_addr = get_int(self.dut.inst_addr)
 
-            if self.request == 1 and self.prev_request == 0:
+            if self.request == 1 and self.prev_request == 0 and self.inst_addr != self.prev_inst_addr:
                 # Getting registers from internal values
                 state.register_file = self.dut.dut.register_file_u.registers.value
                 state.pc = self.dut.inst_addr
@@ -120,19 +119,11 @@ class CoreBfm(metaclass=utility_classes.Singleton):
                 # Store as int values
                 state.to_int()
 
-                # Skip the first result 
-                if self.skip_first:
-                    # print(f"request {self.request}, prev_request {self.prev_request}")
-                    # print(f"Got result at time {get_sim_time()}")
+                self.result_mon_queue.put_nowait(copy.deepcopy(state))
 
-                    self.result_mon_queue.put_nowait(copy.deepcopy(state))
-                    self.skip_first = False
-                else:
-                    self.skip_first = True
-                
                 count = 0
             
-            elif count == 10000:
+            elif count == 1E4:
                 raise Exception
 
             else:
@@ -140,6 +131,7 @@ class CoreBfm(metaclass=utility_classes.Singleton):
                 count += 1
             
             self.prev_request = self.request
+            self.prev_inst_addr = self.inst_addr
 
     def start_bfm(self):
         cocotb.start_soon(self.driver_bfm())

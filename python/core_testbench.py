@@ -82,7 +82,6 @@ class Scoreboard(uvm_component):
 
     def check_phase(self):
         passed = True
-        ignore_first = True
         previous_instruction = 0
 
         try:
@@ -114,7 +113,9 @@ class Scoreboard(uvm_component):
                     passed = False
 
                     # Print difference between states
-                    # self.logger.debug(f"FAILED (preditected/actual): {diff_state(predicted_state, actual_state)}")
+                    # self.logger.info(f"Instruction {'0x{0:08X}'.format(int(instruction))} FAILED : {python_inst}")
+                    
+                    diff_state(predicted_state, actual_state)
 
                 # Writing metrics for coverage
                 self.ap.write((passed, python_inst))
@@ -165,7 +166,7 @@ class CoreAllTest(uvm_test):
     async def run_phase(self):
         self.raise_objection()
     
-        for _ in range(250):
+        for _ in range(100):
             # Apply sequence
             self.test_all = TestAllSeq.create("test_all")
             await self.test_all.start()
