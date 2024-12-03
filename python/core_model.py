@@ -285,3 +285,6 @@ class CoreModel():
                 self.state.register_file[instruction.rd] = self.state.pc + (imm << 12)
 
                 self.state.pc += 1
+        
+        # Reseting register 0 to 0 if it was changed
+        self.state.register_file[0] = 0
