@@ -119,7 +119,7 @@ class CoreBfm(metaclass=utility_classes.Singleton):
                 # Store as int values
                 state.to_int()
 
-                self.result_mon_queue.put_nowait(copy.deepcopy(state))
+                self.result_mon_queue.put_nowait((copy.deepcopy(state), get_sim_time()))
 
                 count = 0
             

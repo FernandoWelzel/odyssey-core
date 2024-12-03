@@ -376,10 +376,10 @@ def create_instruction(instruction_bin):
             
         # B instruction
         case 0b1100011:
-            imm12 = instruction_bin >> 30
-            imm11 = (instruction_bin >> 6) & 0b1 
-            imm4_1 = (instruction_bin >> 7) & 0b1111
-            imm10_5 = (instruction_bin >> 24) & 0b111111
+            imm12 = instruction_bin >> 31 & 0b1
+            imm11 = (instruction_bin >> 7) & 0b1
+            imm4_1 = (instruction_bin >> 8) & 0b1111
+            imm10_5 = (instruction_bin >> 25) & 0b111111
 
             imm = (imm4_1 << 1) | (imm10_5 << 5) | (imm11 << 11) | (imm12 << 12)
 
@@ -416,7 +416,7 @@ def create_instruction(instruction_bin):
 
 # Create completly random instruction
 def create_random_instruction():
-    choice = np.random.choice(["R", "I", "S", "B", "J", "U"], p=[0.5, 0.5, 0, 0, 0, 0])
+    choice = np.random.choice(["R", "I", "S", "B", "J", "U"], p=[0.25, 0.25, 0.25, 0.25, 0, 0])
 
     # Random instruction type
     match choice:
@@ -424,7 +424,7 @@ def create_random_instruction():
             instruction = RInstruction(0, 0, 0, 0, 0)
         
         case "I":
-            sub_type = np.random.choice(["I", "IM", "IJ", "IE"], p=[0.5, 0.3, 0.1, 0.1])
+            sub_type = np.random.choice(["I", "IM", "IJ", "IE"], p=[0.5, 0.5, 0, 0])
 
             sub_type_opcode = type_dictionary[sub_type]
 

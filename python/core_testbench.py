@@ -89,7 +89,7 @@ class Scoreboard(uvm_component):
         except UVMConfigItemNotFound:
             self.errors = False
         while self.result_get_port.can_get() and self.cmd_get_port.can_get():
-            _, actual_state = self.result_get_port.try_get()
+            _, (actual_state, result_time) = self.result_get_port.try_get()
 
             cmd_success, instruction = self.cmd_get_port.try_get()
 
@@ -116,7 +116,7 @@ class Scoreboard(uvm_component):
                     passed = False
                     
                     # Adding instruction information into error log
-                    error_log += f"{python_inst}\n"
+                    error_log += f"{'0x{0:08X}'.format(int(instruction))} => {python_inst} - {result_time} ns\n"
                     error_log += diff_state(predicted_state, actual_state)
 
                 # Writing metrics for coverage
