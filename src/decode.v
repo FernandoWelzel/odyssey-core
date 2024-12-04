@@ -126,6 +126,11 @@ always @(*) begin
     rd_select_reg <= 0;
     branch_flag_reg_new <= 1'b0;
     imm_choice <= 0;
+    alu_control_reg <= ADD_SUB_OP;
+    direct_store_reg <= 0;
+    mem_byte_enable_reg <= 4'b0001;
+    signed_flag_reg <= 0;
+    mem_we_reg <= 0;
 
     // Calculate instruction
     case (opcode)

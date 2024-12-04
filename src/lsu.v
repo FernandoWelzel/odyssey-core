@@ -52,7 +52,7 @@ assign mem_valid = data_valid;
 generate;
     genvar i;
 
-    for (i=0; i<BYTE_DATA_WIDTH; ++i) begin
+    for (i=0; i<BYTE_DATA_WIDTH; ++i) begin : BYTE_ENABLE_CONNECTION
         assign result_data[(i+1)*8-1:i*8] = rdata[(i+1)*8-1:i*8] & {8{mem_byte_enable[i]}};
     end
 endgenerate

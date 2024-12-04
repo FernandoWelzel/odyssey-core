@@ -33,6 +33,7 @@ reg [DATA_WIDTH-1:0] pc;
 reg [DATA_WIDTH-1:0] new_pc;
 reg compute_req;
 reg compute_valid;
+reg branch_flag;
 
 // LSU interface
 reg mem_req;
