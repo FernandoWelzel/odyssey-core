@@ -1,3 +1,6 @@
+import os
+import numpy as np
+
 from pyuvm import *
 
 from tabulate import tabulate, SEPARATING_LINE
@@ -17,6 +20,8 @@ class Coverage(uvm_subscriber):
         except UVMConfigItemNotFound:
             disable_errors = False
         if not disable_errors:
+            sim_num = os.getenv("SIM_NUM")
+
             # Initialize counters for each instruction type
             instructions_count = {
                 "R"  : { "ADD" : 0, "SUB" : 0, "XOR" : 0, "OR" : 0, "AND" : 0, "SLL" : 0, "SRL" : 0, "SRA" : 0, "SLT" : 0, "SLTU" : 0 },
@@ -58,10 +63,10 @@ class Coverage(uvm_subscriber):
                     complete_error_log += f"{error_log}\n\n"
             
             # Print error log to output file
-            with open("error.txt", "w") as f:
+            with open(f"results/error_{sim_num}.txt", "w") as f:
                 f.write(complete_error_log)
 
-                self.logger.info("Written errors to file 'errors.txt'")
+                self.logger.info(f"Written errors to file 'results/errors_{sim_num}.txt'")
 
             formated_list = []
 
@@ -99,9 +104,11 @@ class Coverage(uvm_subscriber):
             table = tabulate(formated_list, headers=["Inst", "FMT", "Correct", "Total", "Ratio (%)"], tablefmt="simple")
 
             # Write the table to a text file
-            with open("results.txt", "w") as f:
+            with open(f"results/coverage_{sim_num}.txt", "w") as f:
                 f.write(table)
 
-                self.logger.info("Written complete coverage results to file 'results.txt'")
-
-
+                self.logger.info(f"Written complete coverage results to file 'results/coverage_{sim_num}.txt'")
+            
+            # Save list of results as numpy list 
+            np.save(f"results/coverage_{sim_num}_count.npy", np.array(instructions_count))
+            np.save(f"results/coverage_{sim_num}_true_count.npy", np.array(instructions_true_count))

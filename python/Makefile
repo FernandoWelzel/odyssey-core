@@ -20,3 +20,18 @@ COCOTB_HDL_TIMEUNIT = 1us
 COCOTB_HDL_TIMEPRECISION = 1us
 include $(shell cocotb-config --makefiles)/Makefile.sim
 include ./checkclean.mk
+
+# Define the total number of simulations
+NUM_SIMULATIONS := 500
+
+# Default target
+all: launch
+
+results_dir:
+	@mkdir -p results
+
+# Target to launch simulations
+launch: results_dir
+	@for i in $(shell seq 1 $$(($(NUM_SIMULATIONS)-1))); do \
+		SIM_NUM=$$i $(MAKE) sim SIM_NUM=$$i; \
+	done

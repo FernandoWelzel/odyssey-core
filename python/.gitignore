@@ -5,5 +5,5 @@ results.xml
 # VCS outputs
 ucli.key
 
-# Ignore output coverage files
-*.txt
+# Ignore results
+results/

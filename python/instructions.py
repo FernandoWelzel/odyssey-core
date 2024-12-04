@@ -102,7 +102,7 @@ class RInstruction(Instruction):
         self.rs2 = random.randint(0, 31)
         self.func3 = random.randint(0, 7)
 
-        if self.func3 == 0x0 or self.func3 == 0x0:
+        if self.func3 == 0x0 or self.func3 == 0x5:
             self.func7 = random.choice([0x00, 0x20])
         else:
             self.func7 = 0x00
@@ -174,8 +174,9 @@ class IInstruction(Instruction):
             case _:
                 raise Exception
         
+        # TODO: Fix problem for generating SRAI instructions
         if self.type == "I" and self.func3 in [0x1, 0x5]:
-            self.imm = random.randint(0, 31)
+            self.imm = random.randint(0, 31) + random.choice([0])
         elif self.type == "IE":
             self.imm = random.randint(0, 1)
         else:
