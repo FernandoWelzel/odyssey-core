@@ -2,16 +2,12 @@
 *.o
 *.x
 *.vcd
+*.gprj.user
 
 # Generic folders 
 *logs/
 *obj_dir/
 
 # Specific folders 
-.vscode
-
-# Specific files
-synth/synth.v
-testbench/systemc/test
-testbench/verilator/test
-tb
+.vscode/
+impl/
