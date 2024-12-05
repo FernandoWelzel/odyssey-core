@@ -1,0 +1,54 @@
+[*]
+[*] GTKWave Analyzer v3.3.118 (w)1999-2023 BSI
+[*] Thu Dec  5 13:29:40 2024
+[*]
+[dumpfile] "/home/welzelf/Documents/Projects/odyssey-core/python/cache/simulation.vcd"
+[dumpfile_mtime] "Thu Dec  5 13:22:56 2024"
+[dumpfile_size] 6964013
+[savefile] "/home/welzelf/Documents/Projects/odyssey-core/python/cache/simulation.gtkw"
+[timestart] 0
+[size] 1920 1003
+[pos] -1 -1
+*-28.000000 122100000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] testbench.
+[sst_width] 209
+[signals_width] 240
+[sst_expanded] 1
+[sst_vpaned_height] 267
+@28
+testbench.dut.clk
+testbench.dut.rst
+testbench.dut.req
+testbench.dut.valid
+@22
+testbench.dut.addr[31:0]
+testbench.dut.data[31:0]
+@28
+testbench.dut.HCLK
+testbench.dut.HRESETn
+@22
+testbench.dut.HADDR[31:0]
+@28
+testbench.dut.HBURST
+testbench.dut.HEXCL
+testbench.dut.HEXOKAY
+testbench.dut.HMASTER
+testbench.dut.HMASTLOCK
+testbench.dut.HNONSEC
+testbench.dut.HPROT
+@22
+testbench.dut.HRDATA[31:0]
+testbench.dut.HRDATA[31:0]
+@28
+testbench.dut.HREADY
+testbench.dut.HRESP
+testbench.dut.HSIZE[2:0]
+testbench.dut.HTRANS[1:0]
+@22
+testbench.dut.HWDATA[31:0]
+@29
+testbench.dut.HWRITE
+@22
+testbench.dut.HWSTRB[3:0]
+[pattern_trace] 1
+[pattern_trace] 0

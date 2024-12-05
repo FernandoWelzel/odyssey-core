@@ -114,10 +114,7 @@ always @(*) begin
             end
         end
         CACHE_HIT: begin
-            valid_reg = 1'b1;
-            
-            // Goes back directly
-            n_state = INIT;
+            n_state = SEND_VALUE;
         end
         WRITE_MEM: begin
             valid_reg = 1'b0;
@@ -129,9 +126,7 @@ always @(*) begin
             n_state = SEND_VALUE;
         end
         SEND_VALUE: begin
-            valid_reg = 1'b0;
-            
-            // Write in the internal memory
+            valid_reg = 1'b1;            
             wre = 1'b0;
             
             // Goes back directly

@@ -1,25 +1,26 @@
 [*]
 [*] GTKWave Analyzer v3.3.118 (w)1999-2023 BSI
-[*] Wed Nov  6 00:42:29 2024
+[*] Mon Nov 11 21:13:25 2024
 [*]
 [dumpfile] "/home/welzelf/Documents/Projects/odyssey-core/python/simulation.vcd"
-[dumpfile_mtime] "Wed Nov  6 00:42:03 2024"
-[dumpfile_size] 33133
+[dumpfile_mtime] "Mon Nov 11 21:11:34 2024"
+[dumpfile_size] 25340
 [savefile] "/home/welzelf/Documents/Projects/odyssey-core/python/simulation.gtkw"
-[timestart] 265
+[timestart] 0
 [size] 1920 1003
 [pos] 1964 73
-*-8.430668 6470 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-7.848741 67 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] core_testbench.
 [treeopen] core_testbench.dut.
 [sst_width] 209
-[signals_width] 254
+[signals_width] 287
 [sst_expanded] 1
-[sst_vpaned_height] 174
+[sst_vpaned_height] 193
 @200
 -Instruction Cache
-@22
+@24
 core_testbench.dut.inst_addr[31:0]
+@22
 core_testbench.dut.inst_data[31:0]
 @28
 core_testbench.dut.inst_req
@@ -33,16 +34,18 @@ core_testbench.dut.fetch_u.inst_req
 core_testbench.dut.fetch_u.inst_valid
 @22
 core_testbench.dut.fetch_u.inst_data[31:0]
+@28
+core_testbench.dut.fetch_u.branch_flag
+@22
 core_testbench.dut.fetch_u.new_pc[31:0]
 core_testbench.dut.fetch_u.pc[31:0]
-@28
-core_testbench.dut.fetch_u.c_state[1:0]
-core_testbench.dut.fetch_u.n_state[1:0]
 @200
 -Instruction Decode
 @22
 core_testbench.dut.decode_u.inst[31:0]
+@28
 core_testbench.dut.decode_u.opcode[6:0]
+@22
 core_testbench.dut.decode_u.addr_rd[4:0]
 core_testbench.dut.decode_u.addr_rs1[4:0]
 core_testbench.dut.decode_u.addr_rs2[4:0]
@@ -53,14 +56,19 @@ core_testbench.dut.decode_u.funct7[6:0]
 @28
 core_testbench.dut.decode_u.alu_control[2:0]
 core_testbench.dut.decode_u.select_imm
+core_testbench.dut.decode_u.select_pc
 core_testbench.dut.decode_u.c_state[2:0]
 core_testbench.dut.decode_u.n_state[2:0]
 @200
 -Decode
 @22
 core_testbench.dut.decode_u.imm[31:0]
+@23
 core_testbench.dut.decode_u.imm_i[11:0]
 core_testbench.dut.decode_u.imm_s[11:0]
+core_testbench.dut.decode_u.imm_b[12:0]
+core_testbench.dut.decode_u.imm_u[31:0]
+core_testbench.dut.decode_u.imm_j[20:0]
 @200
 -ALU
 @28
@@ -93,7 +101,6 @@ core_testbench.dut.lsu_u.data_valid
 core_testbench.dut.lsu_u.data_addr[31:0]
 core_testbench.dut.lsu_u.rdata[31:0]
 core_testbench.dut.lsu_u.result_data[31:0]
-@23
 core_testbench.dut.lsu_u.wdata[31:0]
 @28
 core_testbench.dut.lsu_u.data_we
