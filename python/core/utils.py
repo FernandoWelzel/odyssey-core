@@ -7,7 +7,7 @@ import logging
 
 from pyuvm import utility_classes
 
-from core_model import CoreModel, CoreState
+from model import CoreModel, CoreState
 from instructions import Instruction
 
 import copy

@@ -1,5 +1,5 @@
 // A wrapper for the core module - With clock generation
-module core_testbench #(
+module testbench #(
     parameter DATA_WIDTH = 32,
     parameter BYTE_DATA_WIDTH = 4,
     parameter LOG2_REGISTERS = 5,

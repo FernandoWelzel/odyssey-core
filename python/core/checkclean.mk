@@ -6,6 +6,7 @@ testclean: clean
 	@rm -rf sim_build
 	@rm -rf modelsim.ini
 	@rm -rf transcript
+	@rm -rf results
 
 checkclean: check testclean
 

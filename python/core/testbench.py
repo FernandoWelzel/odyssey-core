@@ -7,12 +7,12 @@ from cocotb.triggers import FallingEdge
 import sys
 from pathlib import Path
 
-sys.path.append(str(Path("..").resolve()))
+sys.path.append(str(Path("../..").resolve()))
 
 from instructions import create_instruction, create_random_instruction
-from core_utils import CoreBfm
-from core_model import CoreState, CoreModel, diff_state
-from core_coverage import Coverage
+from utils import CoreBfm
+from model import CoreModel, diff_state
+from coverage import Coverage
 
 # Sequence classes
 class InstSeqItem(uvm_sequence_item):
