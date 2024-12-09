@@ -55,8 +55,9 @@ module cache #(
 localparam INIT       = 0;
 localparam CACHE_HIT  = 1;
 localparam CACHE_MISS = 2;
-localparam WRITE_MEM  = 3;
-localparam SEND_VALUE = 4;
+localparam READ_MEM   = 3;
+localparam WRITE_MEM  = 4;
+localparam SEND_VALUE = 5;
 
 reg [2:0] c_state, n_state;
 
@@ -78,6 +79,9 @@ reg wre;
 reg [LOG2_BLOCK_SIZE-1:0] ad;
 reg [BLOCK_WIDTH-1:0] di;
 
+reg [LOG2_BLOCK_SIZE-1:0] write_ad;
+reg [LOG2_BLOCK_SIZE-1:0] next_write_ad;
+
 // Combinatorial logic
 always @(*) begin
     wre = 1'b0;
@@ -85,7 +89,7 @@ always @(*) begin
     // State transition logic
     case (c_state)
         INIT: begin
-            valid_reg = 1'b1;
+            valid_reg = 1'b0;
             
             if(req) begin
                 if(cache_miss_reg) begin
@@ -98,6 +102,8 @@ always @(*) begin
             else begin
                 n_state = INIT;
             end
+
+            next_write_ad = write_ad;
         end
         CACHE_MISS: begin
             valid_reg = 1'b0;
@@ -112,9 +118,24 @@ always @(*) begin
             else begin
                 n_state = CACHE_MISS;
             end
+
+            next_write_ad = write_ad;
         end
         CACHE_HIT: begin
             n_state = SEND_VALUE;
+
+            next_write_ad = write_ad;
+        end
+        READ_MEM: begin
+            valid_reg = 1'b0;
+            
+            // Write in the internal memory
+            wre = 1'b0;
+            
+            // Goes back directly
+            n_state = WRITE_MEM;
+
+            next_write_ad = write_ad;
         end
         WRITE_MEM: begin
             valid_reg = 1'b0;
@@ -124,23 +145,34 @@ always @(*) begin
             
             // Goes back directly
             n_state = SEND_VALUE;
+
+            next_write_ad = write_ad + 1;
         end
         SEND_VALUE: begin
             valid_reg = 1'b1;            
             wre = 1'b0;
             
-            // Goes back directly
-            n_state = INIT;
+            if (req) begin
+                n_state = SEND_VALUE;
+            end
+            else begin
+                n_state = INIT;
+            end
+
+            next_write_ad = write_ad;
         end
         default: begin
-            valid_reg = 1'b1;
+            valid_reg = 1'b0;
             
             n_state = INIT;
+
+            next_write_ad = write_ad;
         end
     endcase
 end
 
 // Generating parametric connections
+// TODO: Check all the connection
 generate
     genvar i;
 
@@ -153,13 +185,35 @@ generate
     for(i=0; i<BLOCK_SIZE; i++) begin
         assign tag_memory_reg_new[TAG_WIDTH*(i+1)-1:TAG_WIDTH*i] = (i == ad) ? addr[ADDR_WIDTH-1:ADDR_WIDTH-TAG_WIDTH-1] : tag_memory_reg[TAG_WIDTH*(i+1)-1:TAG_WIDTH*i];
     end
+
+    // Generating new data connection
+    for(i=0; i<BLOCK_WIDTH_WORDS; i++) begin
+        assign di[WORD_WIDTH*(i+1)-1:WORD_WIDTH*i] = (i == addr[LOG2_BLOCK_WIDTH_WORDS-1:0]) ? HRDATA : dout[WORD_WIDTH*(i+1)-1:WORD_WIDTH*i];
+    end
 endgenerate
 
+reg [LOG2_BLOCK_WIDTH_WORDS-1:0] final_addr;
+
+// Procedural logic
 always @(*) begin
-    data_reg = dout[addr[ADDR_WIDTH-TAG_WIDTH-1:0]];
-    
-    // Will have a tag miss only with all tags are invalid
-    cache_miss_reg = ~| tag_comp;
+    // Compute final address
+    final_addr = addr[LOG2_BLOCK_WIDTH_WORDS-1:0];
+
+    // Extract data using a case statement
+    case (final_addr)
+        0: data_reg = dout[WORD_WIDTH*1-1:WORD_WIDTH*0];
+        1: data_reg = dout[WORD_WIDTH*2-1:WORD_WIDTH*1];
+        2: data_reg = dout[WORD_WIDTH*3-1:WORD_WIDTH*2];
+        3: data_reg = dout[WORD_WIDTH*4-1:WORD_WIDTH*3];
+        4: data_reg = dout[WORD_WIDTH*5-1:WORD_WIDTH*4];
+        5: data_reg = dout[WORD_WIDTH*6-1:WORD_WIDTH*5];
+        6: data_reg = dout[WORD_WIDTH*7-1:WORD_WIDTH*6];
+        7: data_reg = dout[WORD_WIDTH*8-1:WORD_WIDTH*7];
+        default: data_reg = {WORD_WIDTH{1'b0}}; // Default to zero if address is out of range
+    endcase
+
+    // Cache miss logic
+    cache_miss_reg = ~|tag_comp;
 end
 
 assign data = data_reg;
@@ -169,8 +223,6 @@ assign valid = valid_reg;
 
 assign HADDR = HADDR_reg;
 assign HTRANS = HTRANS_reg;
-
-assign di = HRDATA;
 
 // Instantiation of SSRAM based memory
 Gowin_RAM16S memory_block (
@@ -189,6 +241,7 @@ always @(posedge clk) begin
         // Reseting variables
         tag_memory_reg <= 0;
         ad <= 0;
+        write_ad <= 0;
 
         // Initializing valid line to zero
         // Obs.: All first access will result in a miss
@@ -197,8 +250,8 @@ always @(posedge clk) begin
         c_state <= INIT;
     end
     else begin
-        if(c_state == SEND_VALUE) begin
-            ad <= ad + 1;
+        if(c_state == WRITE_MEM || c_state == READ_MEM) begin
+            ad <= write_ad;
         end
         else begin
             for(i = 0; i < BLOCK_SIZE; i=i+1) begin
@@ -210,6 +263,8 @@ always @(posedge clk) begin
 
         c_state <= n_state;
         tag_memory_reg <= tag_memory_reg_new;
+
+        write_ad <= next_write_ad;
     end
 end
 
