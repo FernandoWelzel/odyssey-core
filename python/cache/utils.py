@@ -1,6 +1,7 @@
 import cocotb
 from cocotb.triggers import FallingEdge
 from cocotb.queue import QueueEmpty, Queue
+from cocotb.log import get_sim_time
 
 import logging
 from pyuvm import utility_classes
@@ -48,6 +49,8 @@ class CacheBfm(metaclass=utility_classes.Singleton):
         """Reset the DUT."""
         self.dut.rst.value = 1
         self.dut.HRESETn.value = 0
+        self.dut.req.value = 0
+        self.dut.addr.value = 0
         for _ in range(10):
             await FallingEdge(self.dut.clk)
         self.dut.rst.value = 0
@@ -63,11 +66,13 @@ class CacheBfm(metaclass=utility_classes.Singleton):
                 self.dut.req.value = 1
                 self.dut.addr.value = addr
             except QueueEmpty:
-                self.dut.req.value = 0
+                pass
 
             if self.dut.valid.value == 1:
                 data = get_int(self.dut.data)
                 self.cpu_resp_queue.put_nowait(data)
+                
+                self.dut.req.value = 0
             
             # Driving AHB interface
             if self.dut.HTRANS.value == 1:

@@ -52,8 +52,6 @@ class CacheDriver(uvm_driver):
         while True:
             cache_item = await self.seq_item_port.get_next_item()
             await self.bfm.send_cpu_request(cache_item.addr)
-            result = await self.bfm.get_cpu_response()
-            self.ap.write((cache_item.addr, result))
             self.seq_item_port.item_done()
 
             for _ in range(10):  # Adjust to match the cache timing
@@ -133,10 +131,11 @@ class CacheTest(uvm_test):
     def build_phase(self):
         self.env = CacheEnv("env", self)
 
-    def end_of_elaboration_phase(self):
-        self.test_all = TestAllSeq.create("test_all")
-
     async def run_phase(self):
         self.raise_objection()
-        await self.test_all.start()
+        
+        for _ in range(10):
+            self.test_all = TestAllSeq.create("test_all")
+            await self.test_all.start()
+        
         self.drop_objection()

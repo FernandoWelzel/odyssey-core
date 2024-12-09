@@ -62,16 +62,16 @@ localparam SEND_VALUE = 5;
 reg [2:0] c_state, n_state;
 
 // Internal variables
-wire [BLOCK_SIZE-1:0] tag_comp;
+reg [BLOCK_SIZE-1:0] tag_comp;
 reg [TAG_WIDTH*BLOCK_SIZE-1:0] tag_memory_reg;
 reg [TAG_WIDTH*BLOCK_SIZE-1:0] tag_memory_reg_new;
 reg cache_miss_reg;
 reg [BLOCK_SIZE-1:0] valid_line_reg;
+reg [BLOCK_SIZE-1:0] valid_line_reg_new;
 reg valid_reg;
 reg [BLOCK_WIDTH-1:0] data_reg;
 reg [ADDR_WIDTH-1:0] HADDR_reg;
 reg [1:0] HTRANS_reg;
-reg [BLOCK_SIZE-1:0] addr_selection;
 
 // SSRAM variables
 wire [BLOCK_WIDTH-1:0] dout;
@@ -119,7 +119,7 @@ always @(*) begin
                 n_state = CACHE_MISS;
             end
 
-            next_write_ad = write_ad;
+            next_write_ad = write_ad + 1;
         end
         CACHE_HIT: begin
             n_state = SEND_VALUE;
@@ -146,7 +146,7 @@ always @(*) begin
             // Goes back directly
             n_state = SEND_VALUE;
 
-            next_write_ad = write_ad + 1;
+            next_write_ad = write_ad;
         end
         SEND_VALUE: begin
             valid_reg = 1'b1;            
@@ -183,7 +183,8 @@ generate
 
     // Generating tag memory replacement
     for(i=0; i<BLOCK_SIZE; i++) begin
-        assign tag_memory_reg_new[TAG_WIDTH*(i+1)-1:TAG_WIDTH*i] = (i == ad) ? addr[ADDR_WIDTH-1:ADDR_WIDTH-TAG_WIDTH-1] : tag_memory_reg[TAG_WIDTH*(i+1)-1:TAG_WIDTH*i];
+        assign tag_memory_reg_new[TAG_WIDTH*(i+1)-1:TAG_WIDTH*i] = (i == ad && wre) ? addr[ADDR_WIDTH-1:ADDR_WIDTH-TAG_WIDTH-1] : tag_memory_reg[TAG_WIDTH*(i+1)-1:TAG_WIDTH*i];
+        assign valid_line_reg_new[i] = (i == ad && wre);
     end
 
     // Generating new data connection
@@ -200,6 +201,7 @@ always @(*) begin
     final_addr = addr[LOG2_BLOCK_WIDTH_WORDS-1:0];
 
     // Extract data using a case statement
+    // TODO: Fix this fixed size for variable
     case (final_addr)
         0: data_reg = dout[WORD_WIDTH*1-1:WORD_WIDTH*0];
         1: data_reg = dout[WORD_WIDTH*2-1:WORD_WIDTH*1];
@@ -250,8 +252,8 @@ always @(posedge clk) begin
         c_state <= INIT;
     end
     else begin
-        if(c_state == WRITE_MEM || c_state == READ_MEM) begin
-            ad <= write_ad;
+        if(c_state == WRITE_MEM || c_state == READ_MEM || c_state == CACHE_MISS) begin
+            ad <= next_write_ad;
         end
         else begin
             for(i = 0; i < BLOCK_SIZE; i=i+1) begin
@@ -263,6 +265,8 @@ always @(posedge clk) begin
 
         c_state <= n_state;
         tag_memory_reg <= tag_memory_reg_new;
+
+        valid_line_reg <= valid_line_reg_new;
 
         write_ad <= next_write_ad;
     end
