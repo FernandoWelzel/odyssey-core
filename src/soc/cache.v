@@ -52,12 +52,14 @@ module cache #(
 );
 
 // State variables
-localparam INIT       = 0;
-localparam CACHE_HIT  = 1;
-localparam CACHE_MISS = 2;
-localparam READ_MEM   = 3;
-localparam WRITE_MEM  = 4;
-localparam SEND_VALUE = 5;
+localparam INIT        = 0;
+localparam CACHE_HIT   = 1;
+localparam CACHE_MISS  = 2;
+localparam RESET_COUNT = 3;
+localparam UPDATE_AD   = 4;
+localparam READ_MEM    = 5;
+localparam WRITE_MEM   = 6;
+localparam SEND_VALUE  = 7;
 
 reg [2:0] c_state, n_state;
 
@@ -72,6 +74,8 @@ reg valid_reg;
 reg [BLOCK_WIDTH-1:0] data_reg;
 reg [ADDR_WIDTH-1:0] HADDR_reg;
 reg [1:0] HTRANS_reg;
+reg [2:0] count;
+reg [2:0] new_count;
 
 // SSRAM variables
 wire [BLOCK_WIDTH-1:0] dout;
@@ -85,7 +89,8 @@ reg [LOG2_BLOCK_SIZE-1:0] next_write_ad;
 // Combinatorial logic
 always @(*) begin
     wre = 1'b0;
-
+    HTRANS_reg = 1'b0;
+    
     // State transition logic
     case (c_state)
         INIT: begin
@@ -107,26 +112,53 @@ always @(*) begin
         end
         CACHE_MISS: begin
             valid_reg = 1'b0;
-
-            // Make a request for the block transfer from the bus
-            HADDR_reg = addr;
             HTRANS_reg = 1'b1;
             
             if (HREADY) begin
-                n_state = WRITE_MEM;
+                n_state = RESET_COUNT;
             end
             else begin
                 n_state = CACHE_MISS;
             end
 
-            next_write_ad = write_ad + 1;
+            next_write_ad = write_ad;
         end
         CACHE_HIT: begin
             n_state = SEND_VALUE;
 
             next_write_ad = write_ad;
         end
+        RESET_COUNT: begin
+            new_count = 0;
+
+            valid_reg = 1'b0;
+            
+            // Write in the internal memory
+            wre = 1'b0;
+            
+            // Goes back directly
+            n_state = READ_MEM;
+
+            next_write_ad = write_ad + 1;
+        end
+        UPDATE_AD: begin
+            new_count = count + 1;
+            
+            valid_reg = 1'b0;
+            
+            // Write in the internal memory
+            wre = 1'b0;
+            
+            // Goes back directly
+            n_state = READ_MEM;
+
+            next_write_ad = write_ad + 1;
+        end
         READ_MEM: begin
+            HTRANS_reg = 2'b01;
+
+            HADDR_reg = {addr[ADDR_WIDTH-1:LOG2_BLOCK_WIDTH_WORDS], {LOG2_BLOCK_WIDTH_WORDS{1'b0}}} + count;
+
             valid_reg = 1'b0;
             
             // Write in the internal memory
@@ -147,6 +179,13 @@ always @(*) begin
             n_state = SEND_VALUE;
 
             next_write_ad = write_ad;
+
+            if (count == 3'b111) begin
+                n_state = SEND_VALUE;
+            end
+            else begin
+                n_state = UPDATE_AD;
+            end
         end
         SEND_VALUE: begin
             valid_reg = 1'b1;            
@@ -243,7 +282,7 @@ always @(posedge clk) begin
         // Reseting variables
         tag_memory_reg <= 0;
         ad <= 0;
-        write_ad <= 0;
+        write_ad <= {LOG2_BLOCK_SIZE{1'b1}};
 
         // Initializing valid line to zero
         // Obs.: All first access will result in a miss
@@ -252,8 +291,8 @@ always @(posedge clk) begin
         c_state <= INIT;
     end
     else begin
-        if(c_state == WRITE_MEM || c_state == READ_MEM || c_state == CACHE_MISS) begin
-            ad <= next_write_ad;
+        if(c_state == UPDATE_AD) begin
+            ad <= write_ad + 1;
         end
         else begin
             for(i = 0; i < BLOCK_SIZE; i=i+1) begin
@@ -269,6 +308,8 @@ always @(posedge clk) begin
         valid_line_reg <= valid_line_reg_new;
 
         write_ad <= next_write_ad;
+
+        count <= new_count;
     end
 end
 
